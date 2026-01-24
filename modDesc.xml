@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="105">
+    <author>Ozz</author>
+    <version>0.0.0.1</version>
+    <iconFilename>icon_MoistureSystem.dds</iconFilename>
+    <title>
+        <en>Moisture System</en>
+        <de>Feuchtigkeitssystem</de>
+        <fr>Système d'humidité</fr>
+    </title>
+    <description>
+        <en><![CDATA[Moisture System
+
+A mod that adds moisture to the game.
+
+
+]]>
+        </en>
+        <de><![CDATA[Feuchtigkeitssystem
+
+
+]]>
+        </de>
+        <fr><![CDATA[Système d'humidité
+
+
+]]>
+        </fr>
+    </description>
+    <extraSourceFiles>
+        <sourceFile filename="src/main.lua"/>
+        <sourceFile filename="src/MoistureSettings.lua"/>
+    </extraSourceFiles>
+    <multiplayer supported="true"/>
+    <l10n filenamePrefix="languages/l10n" />
+</modDesc>
