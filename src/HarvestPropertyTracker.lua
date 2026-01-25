@@ -241,6 +241,49 @@ function HarvestPropertyTracker:validateTrackedPiles()
 end
 
 ---
+-- Get properties for pile at specific position
+-- @param x, z: World coordinates
+-- @param fillType: The filltype to check
+-- @return properties table or nil
+---
+function HarvestPropertyTracker:getPilePropertiesAtPosition(x, z, fillType)
+    local gridX, gridZ = self:getGridPosition(x, z)
+    local key = self:getGridKey(gridX, gridZ, fillType)
+    local pile = self.gridPiles[key]
+    
+    if pile and pile.volume > 0 then
+        return pile.properties
+    end
+    
+    return nil
+end
+
+---
+-- Remove volume from a pile at position (used when pickup happens)
+-- @param x, z: World coordinates of pickup
+-- @param fillType: The filltype being picked up
+-- @param volumeRemoved: Volume removed in liters
+---
+function HarvestPropertyTracker:removePileAtPosition(x, z, fillType, volumeRemoved)
+    if not self.isServer then return end
+    
+    local gridX, gridZ = self:getGridPosition(x, z)
+    local key = self:getGridKey(gridX, gridZ, fillType)
+    local pile = self.gridPiles[key]
+    
+    if pile then
+        pile.volume = pile.volume - volumeRemoved
+        
+        -- If pile is empty or nearly empty, remove it
+        if pile.volume <= 0.1 then
+            self.gridPiles[key] = nil
+        else
+            pile.lastUpdateTime = self.mission.time
+        end
+    end
+end
+
+---
 -- Save/Load functionality
 ---
 function HarvestPropertyTracker:saveToXMLFile(xmlFile, key)

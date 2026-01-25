@@ -21,6 +21,11 @@ function MoistureSystem:loadMap()
     -- Initialize property tracker
     g_currentMission.harvestPropertyTracker = HarvestPropertyTracker.new()
 
+    -- Initialize vehicle/object moisture tracking
+    -- Structure: { [uniqueId] = { [fillTypeName] = moisture } }
+    -- fillTypeName is the string name to support save/load
+    self.objectMoisture = {}
+
     -- Load from XML file (called directly during loadMap, not via hook)
     self:loadFromXMLFile()
 
@@ -182,6 +187,99 @@ function MoistureSystem.periodToMonth(period)
     return period
 end
 
+---
+-- Get moisture level for an object/vehicle's specific fillType
+-- @param uniqueId: The uniqueId of the object
+-- @param fillType: FillType index
+-- @return moisture level (0-1 scale) or nil if not set
+---
+function MoistureSystem:getObjectMoisture(uniqueId, fillType)
+    if uniqueId == nil or fillType == nil then
+        return nil
+    end
+    
+    local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
+    if fillTypeName == nil then
+        return nil
+    end
+    
+    local objectData = self.objectMoisture[uniqueId]
+    if objectData == nil then
+        return nil
+    end
+    
+    return objectData[fillTypeName]
+end
+
+---
+-- Set moisture level for an object/vehicle's specific fillType
+-- @param uniqueId: The uniqueId of the object
+-- @param fillType: FillType index
+-- @param moisture: The moisture level (0-1 scale) or nil to clear
+---
+function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
+    if uniqueId == nil or fillType == nil then
+        return
+    end
+    
+    local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
+    if fillTypeName == nil then
+        return
+    end
+    
+    if self.objectMoisture[uniqueId] == nil then
+        self.objectMoisture[uniqueId] = {}
+    end
+    
+    self.objectMoisture[uniqueId][fillTypeName] = moisture
+end
+
+---
+-- Transfer moisture from source to target with volume-weighted averaging
+-- @param sourceId: uniqueId of source object
+-- @param targetId: uniqueId of target object
+-- @param sourceLiters: Amount being transferred from source
+-- @param targetCurrentLiters: Current amount in target before transfer
+-- @param fillType: FillType index being transferred
+---
+function MoistureSystem:transferMoisture(sourceId, targetId, sourceLiters, targetCurrentLiters, fillType)
+    if sourceId == nil or targetId == nil or sourceLiters <= 0 or fillType == nil then
+        return
+    end
+    
+    local sourceMoisture = self:getObjectMoisture(sourceId, fillType)
+    local targetMoisture = self:getObjectMoisture(targetId, fillType)
+    
+    -- If neither source nor target have moisture, use current field moisture
+    if sourceMoisture == nil and targetMoisture == nil then
+        sourceMoisture = self.currentMoisturePercent
+    elseif sourceMoisture == nil then
+        -- Source has no moisture but target does - shouldn't happen in normal flow
+        -- Use target moisture as fallback
+        return
+    end
+    
+    if targetMoisture == nil or targetCurrentLiters <= 0 then
+        -- Target is empty or has no moisture set, use source moisture
+        self:setObjectMoisture(targetId, fillType, sourceMoisture)
+    else
+        -- Volume-weighted average
+        -- (targetLiters * targetMoisture + sourceLiters * sourceMoisture) / (targetLiters + sourceLiters)
+        local totalLiters = targetCurrentLiters + sourceLiters
+        local weightedMoisture = (targetCurrentLiters * targetMoisture) + (sourceLiters * sourceMoisture)
+        self:setObjectMoisture(targetId, fillType, weightedMoisture / totalLiters)
+    end
+end
+
+---
+-- Get the default moisture for silo-loaded crops
+-- Uses current field moisture as baseline
+-- @return moisture level (0-1 scale)
+---
+function MoistureSystem:getDefaultMoisture()
+    return self.currentMoisturePercent
+end
+
 function MoistureSystem:onStartMission()
     local ms = g_currentMission.MoistureSystem
 
@@ -225,6 +323,43 @@ function MoistureSystem:loadFromXMLFile()
             g_currentMission.harvestPropertyTracker:loadFromXMLFile(xmlFile, MoistureSystem.SaveKey)
         end
 
+        -- Load object moisture data
+        local i = 0
+        while true do
+            local objectKey = string.format("%s.objectMoisture.object(%d)", MoistureSystem.SaveKey, i)
+            if not hasXMLProperty(xmlFile, objectKey) then
+                break
+            end
+            
+            local uniqueId = getXMLInt(xmlFile, objectKey .. "#uniqueId")
+            
+            if uniqueId then
+                -- Load all fillTypes for this object
+                local j = 0
+                while true do
+                    local fillTypeKey = string.format("%s.fillType(%d)", objectKey, j)
+                    
+                    if not hasXMLProperty(xmlFile, fillTypeKey) then
+                        break
+                    end
+                    
+                    local fillTypeName = getXMLString(xmlFile, fillTypeKey .. "#name")
+                    local moisture = getXMLFloat(xmlFile, fillTypeKey .. "#moisture")
+                    
+                    if fillTypeName and moisture then
+                        if self.objectMoisture[uniqueId] == nil then
+                            self.objectMoisture[uniqueId] = {}
+                        end
+                        self.objectMoisture[uniqueId][fillTypeName] = moisture
+                    end
+                    
+                    j = j + 1
+                end
+            end
+            
+            i = i + 1
+        end
+
         self.didLoadFromXML = true
         delete(xmlFile)
     end
@@ -249,6 +384,26 @@ function MoistureSystem:saveToXmlFile()
 
     if g_currentMission.harvestPropertyTracker then
         g_currentMission.harvestPropertyTracker:saveToXMLFile(xmlFile, MoistureSystem.SaveKey)
+    end
+
+    -- Save object moisture data
+    local i = 0
+    for uniqueId, fillTypes in pairs(self.objectMoisture) do
+        local objectKey = string.format("%s.objectMoisture.object(%d)", MoistureSystem.SaveKey, i)
+        setXMLInt(xmlFile, objectKey .. "#uniqueId", uniqueId)
+        
+        -- Save all fillTypes for this object
+        local j = 0
+        for fillTypeName, moisture in pairs(fillTypes) do
+            local fillTypeKey = string.format("%s.fillType(%d)", objectKey, j)
+            
+            setXMLString(xmlFile, fillTypeKey .. "#name", fillTypeName)
+            setXMLFloat(xmlFile, fillTypeKey .. "#moisture", moisture)
+            
+            j = j + 1
+        end
+        
+        i = i + 1
     end
 
     saveXMLFile(xmlFile)

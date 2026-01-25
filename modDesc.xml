@@ -30,6 +30,12 @@ Credit must be given to Arrow. While this mod is very different to Realistic Wea
     </description>
     <extraSourceFiles>
         <sourceFile filename="src/extensions/PlayerHUDUpdateExtension.lua"/>
+        <sourceFile filename="src/extensions/CutterExtension.lua"/>
+        <sourceFile filename="src/extensions/DischargeableExtension.lua"/>
+        <sourceFile filename="src/extensions/CombineExtension.lua"/>
+        <sourceFile filename="src/extensions/ForageWagonExtension.lua"/>
+        <sourceFile filename="src/extensions/BalerExtension.lua"/>
+        <sourceFile filename="src/extensions/FillVolumeExtension.lua"/>
         <sourceFile filename="src/HarvestPropertyTracker.lua"/>
         <sourceFile filename="src/MoistureClamp.lua"/>
         <sourceFile filename="src/events/MoistureSettingsEvent.lua"/>
