@@ -10,9 +10,10 @@ MSFillVolumeExtension = {}
 -- @param superFunc: Original function
 -- @param fillUnitIndex: Fill unit being filled
 -- @param fillLevelDelta: Amount filled
--- @param fillType: FillType being loaded
+-- @param fillType: FillType being loaded (unused in original signature)
 -- @param toolType: Tool type
 -- @param fillPositionData: Position data
+-- @param appliedDelta: Actually applied delta
 ---
 function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitIndex, fillLevelDelta, fillType, toolType, fillPositionData, appliedDelta)
     -- Call original function first

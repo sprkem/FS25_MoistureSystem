@@ -10,10 +10,11 @@ MSBalerExtension = {}
 -- Extended to clean up pile data after baler picks up from ground
 -- @param superFunc: Original function
 -- @param workArea: The work area
+-- @param dt: Delta time
 ---
-function MSBalerExtension:processBalerArea(superFunc, workArea)
+function MSBalerExtension:processBalerArea(superFunc, workArea, dt)
     -- Call original function first
-    local result = superFunc(self, workArea)
+    local result = superFunc(self, workArea, dt)
     
     -- Only process on server
     if not self.isServer then

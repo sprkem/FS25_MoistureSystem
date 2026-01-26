@@ -216,6 +216,8 @@ function MSPlayerHUDExtension:showObjectMoistureInfo()
     end
 end
 
+PlayerHUDUpdater.showObjectMoistureInfo = MSPlayerHUDExtension.showObjectMoistureInfo
+
 ---
 -- Show moisture data for vehicles/objects being looked at
 -- Appended to PlayerHUDUpdater.showVehicleInfo

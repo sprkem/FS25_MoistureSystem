@@ -137,8 +137,6 @@ function MoistureSystem:getMoistureAtPosition(x, z)
 end
 
 function MoistureSystem:firstLoad()
-    self:findMidHeight()
-
     -- Get current month and environment
     local month = MoistureSystem.periodToMonth(g_currentMission.environment.currentPeriod)
     local environment = self.settings.environment
@@ -282,6 +280,7 @@ end
 
 function MoistureSystem:onStartMission()
     local ms = g_currentMission.MoistureSystem
+    ms:findMidHeight()
 
     if g_currentMission:getIsServer() then
         -- Initialize mod on new game
@@ -331,7 +330,7 @@ function MoistureSystem:loadFromXMLFile()
                 break
             end
             
-            local uniqueId = getXMLInt(xmlFile, objectKey .. "#uniqueId")
+            local uniqueId = getXMLString(xmlFile, objectKey .. "#uniqueId")
             
             if uniqueId then
                 -- Load all fillTypes for this object
@@ -377,10 +376,12 @@ function MoistureSystem:saveToXmlFile()
     local xmlFile = createXMLFile(MoistureSystem.SaveKey, savegameFolderPath .. MoistureSystem.SaveKey .. ".xml",
         MoistureSystem.SaveKey)
 
+    local ms = g_currentMission.MoistureSystem
+
     -- Save settings
-    setXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment", self.settings.environment)
-    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier", self.settings.moistureLossMultiplier)
-    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier", self.settings.moistureGainMultiplier)
+    setXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment", ms.settings.environment)
+    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier", ms.settings.moistureLossMultiplier)
+    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier", ms.settings.moistureGainMultiplier)
 
     if g_currentMission.harvestPropertyTracker then
         g_currentMission.harvestPropertyTracker:saveToXMLFile(xmlFile, MoistureSystem.SaveKey)
@@ -388,9 +389,9 @@ function MoistureSystem:saveToXmlFile()
 
     -- Save object moisture data
     local i = 0
-    for uniqueId, fillTypes in pairs(self.objectMoisture) do
+    for uniqueId, fillTypes in pairs(ms.objectMoisture) do
         local objectKey = string.format("%s.objectMoisture.object(%d)", MoistureSystem.SaveKey, i)
-        setXMLInt(xmlFile, objectKey .. "#uniqueId", uniqueId)
+        setXMLString(xmlFile, objectKey .. "#uniqueId", uniqueId)
         
         -- Save all fillTypes for this object
         local j = 0

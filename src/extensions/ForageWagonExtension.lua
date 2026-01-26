@@ -10,8 +10,9 @@ MSForageWagonExtension = {}
 -- Extended to track moisture from ground piles and clean up pile data
 -- @param superFunc: Original function
 -- @param dt: Delta time
+-- @param hasProcessed: Whether work areas were processed
 ---
-function MSForageWagonExtension:onEndWorkAreaProcessing(superFunc, dt)
+function MSForageWagonExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
     -- Call original function first
     local result = superFunc(self, dt)
     

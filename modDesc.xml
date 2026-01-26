@@ -30,6 +30,7 @@ Credit must be given to Arrow. While this mod is very different to Realistic Wea
     </description>
     <extraSourceFiles>
         <sourceFile filename="src/extensions/PlayerHUDUpdateExtension.lua"/>
+        <sourceFile filename="src/extensions/PlaceableInfoTriggerExtension.lua"/>
         <sourceFile filename="src/extensions/CutterExtension.lua"/>
         <sourceFile filename="src/extensions/DischargeableExtension.lua"/>
         <sourceFile filename="src/extensions/CombineExtension.lua"/>

@@ -63,7 +63,7 @@ function MSCutterExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
     end
     
     -- Get fillType for the harvested crop
-    local fillType = g_fruitTypeManager:getFruitTypeByIndex(fruitType).fillTypeIndex
+    local fillType = g_fruitTypeManager:getFruitTypeByIndex(fruitType).fillType.index
     if fillType == nil then
         return result
     end
