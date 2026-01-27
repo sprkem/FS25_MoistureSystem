@@ -14,8 +14,8 @@ function MoistureSystem:loadMap()
     -- Initialize settings
     self.settings = {
         environment = MoistureClampEnvironments.NORMAL, -- Default to NORMAL
-        moistureLossMultiplier = 5.0,
-        moistureGainMultiplier = 5.0
+        moistureLossMultiplier = 3.0,
+        moistureGainMultiplier = 3.0
     }
 
     -- Initialize property tracker
@@ -52,6 +52,7 @@ end
 -- @param timescale: Time elapsed in milliseconds since last update
 ---
 function MoistureSystem:updateMoistureLevel(timescale)
+    if not g_currentMission:getIsServer() then return end
     local weather = g_currentMission.environment.weather
 
     -- Get current weather conditions
@@ -65,7 +66,7 @@ function MoistureSystem:updateMoistureLevel(timescale)
 
     -- Gain moisture from rain/snow
     if rainfall > 0 or snowfall > 0 then
-        moistureDelta = (rainfall + snowfall * 0.75) * 0.0054 * (timescale / 100000) * self.settings.moistureGainMultiplier
+        moistureDelta = (rainfall + snowfall * 0.75) * 0.009 * (timescale / 100000) * self.settings.moistureGainMultiplier
         self:adjustMoisture(moistureDelta)
         return
     end
@@ -77,15 +78,15 @@ function MoistureSystem:updateMoistureLevel(timescale)
     local sunFactor = (currentHour >= daylightStart and currentHour < daylightEnd) and 1 or 0.33
 
     if temperature >= 45 then
-        moistureDelta = moistureDelta - (temperature * 0.00096 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        moistureDelta = moistureDelta - (temperature * 0.00128 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
     elseif temperature >= 35 then
-        moistureDelta = moistureDelta - (temperature * 0.000704 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        moistureDelta = moistureDelta - (temperature * 0.0009387 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
     elseif temperature >= 25 then
-        moistureDelta = moistureDelta - (temperature * 0.000304 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        moistureDelta = moistureDelta - (temperature * 0.0004053 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
     elseif temperature >= 15 then
-        moistureDelta = moistureDelta - (temperature * 0.000096 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        moistureDelta = moistureDelta - (temperature * 0.000128 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
     elseif temperature > 0 then
-        moistureDelta = moistureDelta - (temperature * 0.00004 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        moistureDelta = moistureDelta - (temperature * 0.0000533 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
     end
 
     -- Apply moisture change with clamping
@@ -97,6 +98,7 @@ end
 -- @param delta: Amount to change moisture (can be positive or negative)
 ---
 function MoistureSystem:adjustMoisture(delta)
+    if not g_currentMission:getIsServer() then return end
     -- Get current month and environment
     local month = MoistureSystem.periodToMonth(g_currentMission.environment.currentPeriod)
     local environment = self.settings.environment
@@ -107,7 +109,12 @@ function MoistureSystem:adjustMoisture(delta)
     local maxMoisture = monthData.Max / 100 -- Convert to 0-1 scale
 
     -- Apply delta and clamp to min/max range
-    self.currentMoisturePercent = math.max(minMoisture, math.min(maxMoisture, self.currentMoisturePercent + delta))
+    local newMoisture = math.max(minMoisture, math.min(maxMoisture, self.currentMoisturePercent + delta))
+    
+    -- Only send event if value changed
+    if newMoisture ~= self.currentMoisturePercent then
+        g_client:getServerConnection():sendEvent(MoistureUpdateEvent.new(newMoisture))
+    end
 end
 
 function MoistureSystem:getMoistureAtPosition(x, z)
@@ -279,6 +286,7 @@ function MoistureSystem:getDefaultMoisture()
 end
 
 function MoistureSystem:onStartMission()
+    CropValueMap.initialize()
     local ms = g_currentMission.MoistureSystem
     ms:findMidHeight()
 

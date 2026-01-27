@@ -30,7 +30,7 @@ MoistureSettings.SETTINGS.environment = {
 }
 
 MoistureSettings.SETTINGS.moistureLossMultiplier = {
-    ['default'] = 5,
+    ['default'] = 3,
     ['serverOnly'] = true,
     ['permission'] = 'moistureSettings',
     ['values'] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
@@ -38,7 +38,7 @@ MoistureSettings.SETTINGS.moistureLossMultiplier = {
 }
 
 MoistureSettings.SETTINGS.moistureGainMultiplier = {
-    ['default'] = 5,
+    ['default'] = 3,
     ['serverOnly'] = true,
     ['permission'] = 'moistureSettings',
     ['values'] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
