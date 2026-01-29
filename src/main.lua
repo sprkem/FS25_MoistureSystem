@@ -51,8 +51,9 @@ end
 -- Update moisture level based on weather conditions
 -- @param timescale: Time elapsed in milliseconds since last update
 ---
-function MoistureSystem:updateMoistureLevel(timescale)
+function MoistureSystem:updateMoistureLevel(delta)
     if not g_currentMission:getIsServer() then return end
+    local scaledDelta = delta * g_currentMission:getEffectiveTimeScale()
     local weather = g_currentMission.environment.weather
 
     -- Get current weather conditions
@@ -66,7 +67,8 @@ function MoistureSystem:updateMoistureLevel(timescale)
 
     -- Gain moisture from rain/snow
     if rainfall > 0 or snowfall > 0 then
-        moistureDelta = (rainfall + snowfall * 0.75) * 0.009 * (timescale / 100000) * self.settings.moistureGainMultiplier
+        moistureDelta = (rainfall + snowfall * 0.75) * 0.009 * (scaledDelta / 100000) *
+        self.settings.moistureGainMultiplier
         self:adjustMoisture(moistureDelta)
         return
     end
@@ -77,20 +79,28 @@ function MoistureSystem:updateMoistureLevel(timescale)
     local daylightEnd = 20
     local sunFactor = (currentHour >= daylightStart and currentHour < daylightEnd) and 1 or 0.33
 
+    local rateFactor = 0
     if temperature >= 45 then
-        moistureDelta = moistureDelta - (temperature * 0.00128 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        rateFactor = temperature * 0.00128
     elseif temperature >= 35 then
-        moistureDelta = moistureDelta - (temperature * 0.0009387 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        rateFactor = temperature * 0.0009387
     elseif temperature >= 25 then
-        moistureDelta = moistureDelta - (temperature * 0.0004053 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        rateFactor = temperature * 0.0004053
     elseif temperature >= 15 then
-        moistureDelta = moistureDelta - (temperature * 0.000128 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
-    elseif temperature > 0 then
-        moistureDelta = moistureDelta - (temperature * 0.0000533 * (timescale / 100000) * sunFactor * self.settings.moistureLossMultiplier)
+        rateFactor = temperature * 0.000128
+    else
+        rateFactor = temperature * 0.0000533
     end
+
+    moistureDelta = moistureDelta - (rateFactor * (scaledDelta / 100000) * sunFactor * self.settings.moistureLossMultiplier)
 
     -- Apply moisture change with clamping
     self:adjustMoisture(moistureDelta)
+    
+    -- Update grass pile moisture
+    if g_currentMission.harvestPropertyTracker then
+        g_currentMission.harvestPropertyTracker:updateGrassMoisture(moistureDelta)
+    end
 end
 
 ---
@@ -110,7 +120,7 @@ function MoistureSystem:adjustMoisture(delta)
 
     -- Apply delta and clamp to min/max range
     local newMoisture = math.max(minMoisture, math.min(maxMoisture, self.currentMoisturePercent + delta))
-    
+
     -- Only send event if value changed
     if newMoisture ~= self.currentMoisturePercent then
         g_client:getServerConnection():sendEvent(MoistureUpdateEvent.new(newMoisture))
@@ -202,17 +212,17 @@ function MoistureSystem:getObjectMoisture(uniqueId, fillType)
     if uniqueId == nil or fillType == nil then
         return nil
     end
-    
+
     local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
     if fillTypeName == nil then
         return nil
     end
-    
+
     local objectData = self.objectMoisture[uniqueId]
     if objectData == nil then
         return nil
     end
-    
+
     return objectData[fillTypeName]
 end
 
@@ -226,16 +236,16 @@ function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
     if uniqueId == nil or fillType == nil then
         return
     end
-    
+
     local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
     if fillTypeName == nil then
         return
     end
-    
+
     if self.objectMoisture[uniqueId] == nil then
         self.objectMoisture[uniqueId] = {}
     end
-    
+
     self.objectMoisture[uniqueId][fillTypeName] = moisture
 end
 
@@ -251,10 +261,10 @@ function MoistureSystem:transferMoisture(sourceId, targetId, sourceLiters, targe
     if sourceId == nil or targetId == nil or sourceLiters <= 0 or fillType == nil then
         return
     end
-    
+
     local sourceMoisture = self:getObjectMoisture(sourceId, fillType)
     local targetMoisture = self:getObjectMoisture(targetId, fillType)
-    
+
     -- If neither source nor target have moisture, use current field moisture
     if sourceMoisture == nil and targetMoisture == nil then
         sourceMoisture = self.currentMoisturePercent
@@ -263,7 +273,7 @@ function MoistureSystem:transferMoisture(sourceId, targetId, sourceLiters, targe
         -- Use target moisture as fallback
         return
     end
-    
+
     if targetMoisture == nil or targetCurrentLiters <= 0 then
         -- Target is empty or has no moisture set, use source moisture
         self:setObjectMoisture(targetId, fillType, sourceMoisture)
@@ -315,12 +325,12 @@ function MoistureSystem:loadFromXMLFile()
         if environment then
             self.settings.environment = environment
         end
-        
+
         local lossMultiplier = getXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier")
         if lossMultiplier then
             self.settings.moistureLossMultiplier = lossMultiplier
         end
-        
+
         local gainMultiplier = getXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier")
         if gainMultiplier then
             self.settings.moistureGainMultiplier = gainMultiplier
@@ -337,33 +347,33 @@ function MoistureSystem:loadFromXMLFile()
             if not hasXMLProperty(xmlFile, objectKey) then
                 break
             end
-            
+
             local uniqueId = getXMLString(xmlFile, objectKey .. "#uniqueId")
-            
+
             if uniqueId then
                 -- Load all fillTypes for this object
                 local j = 0
                 while true do
                     local fillTypeKey = string.format("%s.fillType(%d)", objectKey, j)
-                    
+
                     if not hasXMLProperty(xmlFile, fillTypeKey) then
                         break
                     end
-                    
+
                     local fillTypeName = getXMLString(xmlFile, fillTypeKey .. "#name")
                     local moisture = getXMLFloat(xmlFile, fillTypeKey .. "#moisture")
-                    
+
                     if fillTypeName and moisture then
                         if self.objectMoisture[uniqueId] == nil then
                             self.objectMoisture[uniqueId] = {}
                         end
                         self.objectMoisture[uniqueId][fillTypeName] = moisture
                     end
-                    
+
                     j = j + 1
                 end
             end
-            
+
             i = i + 1
         end
 
@@ -388,8 +398,10 @@ function MoistureSystem:saveToXmlFile()
 
     -- Save settings
     setXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment", ms.settings.environment)
-    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier", ms.settings.moistureLossMultiplier)
-    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier", ms.settings.moistureGainMultiplier)
+    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier", ms.settings
+    .moistureLossMultiplier)
+    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier", ms.settings
+    .moistureGainMultiplier)
 
     if g_currentMission.harvestPropertyTracker then
         g_currentMission.harvestPropertyTracker:saveToXMLFile(xmlFile, MoistureSystem.SaveKey)
@@ -400,18 +412,18 @@ function MoistureSystem:saveToXmlFile()
     for uniqueId, fillTypes in pairs(ms.objectMoisture) do
         local objectKey = string.format("%s.objectMoisture.object(%d)", MoistureSystem.SaveKey, i)
         setXMLString(xmlFile, objectKey .. "#uniqueId", uniqueId)
-        
+
         -- Save all fillTypes for this object
         local j = 0
         for fillTypeName, moisture in pairs(fillTypes) do
             local fillTypeKey = string.format("%s.fillType(%d)", objectKey, j)
-            
+
             setXMLString(xmlFile, fillTypeKey .. "#name", fillTypeName)
             setXMLFloat(xmlFile, fillTypeKey .. "#moisture", moisture)
-            
+
             j = j + 1
         end
-        
+
         i = i + 1
     end
 
