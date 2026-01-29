@@ -59,18 +59,28 @@ function PilePropertyUpdateEvent:run(connection)
     local tracker = g_currentMission.harvestPropertyTracker
     if isGrass and self.properties.moisture and self.properties.moisture <= MSTedderExtension.DRY_THRESHOLD then
         if g_currentMission:getIsServer() then
-            -- Calculate area from grid position
+            -- Calculate area from grid position with 20% buffer to catch grass at edges
             local halfSize = HarvestPropertyTracker.GRID_SIZE / 2
-            local sx = self.gridX - halfSize
-            local sz = self.gridZ - halfSize
-            local wx = self.gridX + halfSize
-            local wz = self.gridZ - halfSize
-            local hx = self.gridX - halfSize
-            local hz = self.gridZ + halfSize
+            local buffer = halfSize * 0.2  -- 20% buffer
+            local sx = self.gridX - halfSize - buffer
+            local sz = self.gridZ - halfSize - buffer
+            local wx = self.gridX + halfSize + buffer
+            local wz = self.gridZ - halfSize - buffer
+            local hx = self.gridX - halfSize - buffer
+            local hz = self.gridZ + halfSize + buffer
 
             local grassFillType = g_fillTypeManager:getFillTypeIndexByName("GRASS_WINDROW")
             local hayFillType = g_fillTypeManager:getFillTypeIndexByName("DRYGRASS_WINDROW")
+            print(string.format("[HAY CONVERSION] Cell (%d,%d) moisture %.1f%% <= %.1f%% threshold - converting GRASS to HAY (with 20%% buffer)",
+                self.gridX, self.gridZ, self.properties.moisture * 100, MSTedderExtension.DRY_THRESHOLD * 100))
             DensityMapHeightUtil.changeFillTypeAtArea(sx, sz, wx, wz, hx, hz, grassFillType, hayFillType)
+            
+            -- Mark this cell as a "hay cell" for 5 seconds (10 cycles at 500ms each)
+            local gridKey = tracker:getSimpleGridKey(self.gridX, self.gridZ)
+            tracker.hayCells[gridKey] = 10
+            
+            -- Check and cleanup any remaining grass pile tracking
+            tracker:checkPileHasContent(self.gridX, self.gridZ, hayFillType)
             tracker:checkPileHasContent(self.gridX, self.gridZ, self.fillTypeIndex)
         end
     else

@@ -9,7 +9,7 @@ function MoistureSystem:loadMap()
     self.midHeight = 0
     self.currentMoisturePercent = 0
     self.timeSinceLastUpdate = 0
-    self.updateInterval = 500 -- Update every 0.5 seconds (in milliseconds)
+    self.updateInterval = 500
 
     -- Initialize settings
     self.settings = {
