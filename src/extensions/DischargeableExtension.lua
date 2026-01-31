@@ -166,8 +166,6 @@ function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, em
         return dischargedLiters
     end
 
-    -- Get filltype
-    -- local fillType = self:getDischargeFillType(dischargeNode)
     if fillType == nil then
         return dischargedLiters
     end
@@ -208,22 +206,22 @@ end
 -- @param object: Target object receiving the discharge
 -- @param targetFillUnitIndex: Fill unit index on target
 ---
-function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, emptyLiters, object, targetFillUnitIndex)
-    -- Inject vehicle uniqueId into dischargeNode.info before discharge
-    -- This will be passed as extraAttributes to UnloadTrigger and then SellingStation
-    if self.uniqueId ~= nil and dischargeNode.info ~= nil then
-        dischargeNode.info.sourceUniqueId = self.uniqueId
-        dischargeNode.info.sourceObject = self
-    end
+-- function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, emptyLiters, object, targetFillUnitIndex)
+--     -- Inject vehicle uniqueId into dischargeNode.info before discharge
+--     -- This will be passed as extraAttributes to UnloadTrigger and then SellingStation
+--     if self.uniqueId ~= nil and dischargeNode.info ~= nil then
+--         dischargeNode.info.sourceUniqueId = self.uniqueId
+--         dischargeNode.info.sourceObject = self
+--     end
     
-    -- Call original function
-    return superFunc(self, dischargeNode, emptyLiters, object, targetFillUnitIndex)
-end
+--     -- Call original function
+--     return superFunc(self, dischargeNode, emptyLiters, object, targetFillUnitIndex)
+-- end
 
-Dischargeable.dischargeToGround = Utils.overwrittenFunction(
-    Dischargeable.dischargeToGround,
-    MSDischargeableExtension.dischargeToGround
-)
+-- Dischargeable.dischargeToGround = Utils.overwrittenFunction(
+--     Dischargeable.dischargeToGround,
+--     MSDischargeableExtension.dischargeToGround
+-- )
 
 Dischargeable.dischargeToObject = Utils.overwrittenFunction(
     Dischargeable.dischargeToObject,

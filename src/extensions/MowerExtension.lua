@@ -13,10 +13,12 @@ MSMowerExtension = {}
 ---
 function MSMowerExtension:processDropArea(superFunc, dropArea, dt)
     -- Call original function
+    local toDrop = dropArea.litersToDrop
     superFunc(self, dropArea, dt)
+    local dropped = toDrop - dropArea.litersToDrop
     
     -- Only track on server and if grass was dropped
-    if not self.isServer or dropArea.litersToDrop == 0 then
+    if not self.isServer or dropped <= 0 then
         return
     end
     
@@ -50,7 +52,7 @@ function MSMowerExtension:processDropArea(superFunc, dropArea, dt)
     -- Track the dropped grass pile with moisture
     -- Note: litersToDrop is the amount that was attempted to drop
     -- The actual dropped amount was already deducted from litersToDrop by superFunc
-    tracker:addPile(sx, sz, wx, wz, hx, hz, dropArea.fillType, dropArea.litersToDrop, {
+    tracker:addPile(sx, sz, wx, wz, hx, hz, dropArea.fillType, dropped, {
         moisture = moisture
     })
 end
