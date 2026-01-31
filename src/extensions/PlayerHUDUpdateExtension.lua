@@ -26,6 +26,27 @@ end
 PlayerInputComponent.update = Utils.appendedFunction(PlayerInputComponent.update, MSPlayerHUDExtension.updatePlayerInput)
 
 ---
+-- Format moisture value with grade for display
+-- @param fillTypeIndex: The filltype index
+-- @param moisture: Moisture value (0-1 scale)
+-- @return Formatted string with moisture percentage and grade if applicable
+---
+function MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
+    local moistureText = string.format("%.1f%%", moisture * 100)
+    local isGrass = fillTypeIndex == FillType.GRASS or fillTypeIndex == FillType.GRASS_WINDROW
+    
+    if not isGrass then
+        local grade, multiplier = CropValueMap.getGrade(fillTypeIndex, moisture)
+        if grade ~= nil then
+            local gradeNames = { "A", "B", "C", "D" }
+            moistureText = moistureText .. " (Grade " .. gradeNames[grade] .. ")"
+        end
+    end
+    
+    return moistureText
+end
+
+---
 -- Show field moisture information when standing on a field
 -- Appended to PlayerHUDUpdater.showFieldInfo
 ---
@@ -138,10 +159,10 @@ function MSPlayerHUDExtension:showFillTypeInfo()
     box:clear()
     box:setTitle(fillTypeName)
 
-    -- Show moisture level
+    -- Show moisture level with grade if not grass
     box:addLine(
         g_i18n:getText("moistureSystem_moisture"),
-        string.format("%.1f%%", moisture * 100)
+        MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
     )
 
     -- Show volume if available
@@ -224,7 +245,7 @@ function MSPlayerHUDExtension:showObjectMoistureInfo()
             if fillType then
                 box:addLine(
                     fillType.title .. " " .. g_i18n:getText("moistureSystem_moisture"),
-                    string.format("%.1f%%", moisture * 100)
+                    MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
                 )
                 hasData = true
             end
@@ -273,7 +294,7 @@ function MSPlayerHUDExtension:showVehicleInfo(vehicle)
             if fillType then
                 box:addLine(
                     fillType.title .. " " .. g_i18n:getText("moistureSystem_moisture"),
-                    string.format("%.1f%%", moisture * 100)
+                    MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
                 )
             end
         end
@@ -315,7 +336,7 @@ function MSPlayerHUDExtension:showPalletInfo(pallet)
             if fillType then
                 box:addLine(
                     fillType.title .. " " .. g_i18n:getText("moistureSystem_moisture"),
-                    string.format("%.1f%%", moisture * 100)
+                    MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
                 )
             end
         end
