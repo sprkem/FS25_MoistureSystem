@@ -636,3 +636,45 @@ ClassName.functionName = Utils.overwrittenFunction(
 5. **Check hasXMLProperty** - Always check existence before reading nested properties
 6. **Manual iteration** - Use `while true` with counter for arrays, not `xmlFile:iterate()`
 7. **Server-only operations** - Always check `g_currentMission:getIsServer()` before modifying game state
+
+## Localization (l10n)
+
+All user-facing text must be localized to support multiple languages.
+
+### Adding Localized Text
+
+**Language file location**: `languages/l10n_en.xml` (and other language variants)
+
+**Add text entry:**
+```xml
+<text name="moistureSystem_gui_cropGradeValues" text="Crop Grade Values"/>
+```
+
+**Naming convention**: Use descriptive keys prefixed with mod context
+- GUI text: `moistureSystem_gui_<description>`
+- Settings: `setting_moisture_<settingName>`
+- HUD display: `moistureSystem_<description>`
+- Permissions: `permission_moisture_<permissionName>`
+
+### Using Localized Text
+
+**In XML files** - Prefix with `$l10n_`:
+```xml
+<Text text="$l10n_moistureSystem_gui_cropGradeValues" />
+```
+
+**In Lua code** - Use `g_i18n:getText()`:
+```lua
+local text = g_i18n:getText("moistureSystem_gui_cropGradeValues")
+```
+
+**With formatting** - Use `g_i18n:getText()` with string.format:
+```lua
+local text = string.format(g_i18n:getText("moistureSystem_moisture"), value)
+```
+
+### Important Notes
+- Never hardcode user-facing strings
+- Keys must match exactly between XML and references (case-sensitive)
+- All language files must have the same keys (even if translations aren't complete)
+- Use comments in l10n files to organize related entries

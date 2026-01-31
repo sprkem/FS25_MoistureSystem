@@ -47,8 +47,20 @@ Credit must be given to Arrow. While this mod is very different to Realistic Wea
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
         <sourceFile filename="src/events/PilePropertyUpdateEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
+        <sourceFile filename="src/gui/MoistureGuiGrades.lua"/>
+        <sourceFile filename="src/gui/MoistureGui.lua"/>
         <sourceFile filename="src/main.lua"/>
     </extraSourceFiles>
     <multiplayer supported="true"/>
     <l10n filenamePrefix="languages/l10n" />
+    
+    <actions>
+        <action name="MOISTURE_MENU" category="SYSTEM" axisType="HALF" ignoreComboMask="false" />
+    </actions>
+    
+    <inputBinding>
+        <actionBinding action="MOISTURE_MENU">
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m" />
+        </actionBinding>
+    </inputBinding>
 </modDesc>

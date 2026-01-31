@@ -34,6 +34,16 @@ function MoistureSystem:loadMap()
     if g_gui then
         MoistureSettings.injectMenu()
     end
+
+    -- Register action event for menu
+    FSBaseMission.registerActionEvents = Utils.appendedFunction(FSBaseMission.registerActionEvents, MoistureSystem.registerActionEventsPlayer)
+
+    -- Load GUI
+    local gradesFrame = MoistureGuiGrades.new(g_i18n)
+    g_gui:loadGui(MoistureSystem.dir .. "src/gui/MoistureGuiGrades.xml", "MoistureGuiGrades", gradesFrame, true)
+    
+    self.moistureGui = MoistureGui:new(g_messageCenter, g_i18n, g_inputBinding)
+    g_gui:loadGui(MoistureSystem.dir .. "src/gui/MoistureGui.xml", "MoistureGui", self.moistureGui)
 end
 
 function MoistureSystem:update(dt)
@@ -69,7 +79,7 @@ function MoistureSystem:updateMoistureLevel(delta)
     -- Gain moisture from rain/snow
     if rainfall > 0 or snowfall > 0 then
         moistureDelta = (rainfall + snowfall * 0.75) * 0.009 * scaledDelta *
-        self.settings.moistureGainMultiplier
+            self.settings.moistureGainMultiplier
         self:adjustMoisture(moistureDelta)
         return
     end
@@ -97,7 +107,7 @@ function MoistureSystem:updateMoistureLevel(delta)
 
     -- Apply moisture change with clamping
     self:adjustMoisture(moistureDelta)
-    
+
     -- Update grass pile moisture
     if g_currentMission.harvestPropertyTracker then
         g_currentMission.harvestPropertyTracker:updateGrassMoisture(moistureDelta)
@@ -405,11 +415,11 @@ function MoistureSystem:saveToXmlFile()
     -- Save settings
     setXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment", ms.settings.environment)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureLossMultiplier", ms.settings
-    .moistureLossMultiplier)
+        .moistureLossMultiplier)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#moistureGainMultiplier", ms.settings
-    .moistureGainMultiplier)
+        .moistureGainMultiplier)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#teddingMoistureReduction", ms.settings
-    .teddingMoistureReduction)
+        .teddingMoistureReduction)
 
     if g_currentMission.harvestPropertyTracker then
         g_currentMission.harvestPropertyTracker:saveToXMLFile(xmlFile, MoistureSystem.SaveKey)
@@ -439,6 +449,40 @@ function MoistureSystem:saveToXmlFile()
     delete(xmlFile)
 end
 
+-- ---
+-- -- Register action events for player
+-- ---
+-- function MoistureSystem:registerActionEventsPlayer()
+--     local result, eventName = InputBinding.registerActionEvent(
+--         g_inputBinding, 'moisture_menu',
+--         self, MoistureSystem.actionOpenMoistureGui,
+--         false, true, false, true
+--     )
+
+--     if result then
+--         g_inputBinding.events[eventName].displayIsVisible = true
+--     end
+-- end
+
+---
+-- Action callback to open moisture GUI
+---
+function MoistureSystem.ShowMoistureGUI()
+    if g_gui.currentGui == nil then
+        g_gui:showGui("MoistureGui")
+    end
+end
+
+local function addPlayerActionEvents(self, superFunc, ...)
+    superFunc(self, ...)
+    local _, id = g_inputBinding:registerActionEvent(InputAction.MOISTURE_MENU, self,
+        MoistureSystem.ShowMoistureGUI, false, true, false,
+        true)
+    g_inputBinding:setActionEventTextVisibility(id, false)
+end
+
 FSBaseMission.saveSavegame = Utils.appendedFunction(FSBaseMission.saveSavegame, MoistureSystem.saveToXmlFile)
 FSBaseMission.onStartMission = Utils.appendedFunction(FSBaseMission.onStartMission, MoistureSystem.onStartMission)
+PlayerInputComponent.registerGlobalPlayerActionEvents = Utils.overwrittenFunction(
+    PlayerInputComponent.registerGlobalPlayerActionEvents, addPlayerActionEvents)
 addModEventListener(MoistureSystem)

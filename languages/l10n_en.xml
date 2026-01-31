@@ -25,5 +25,8 @@
 		<text name="moistureSystem_fieldInfo" text="Field Moisture"/>
 		<text name="moistureSystem_moisture" text="Moisture"/>
 		<text name="moistureSystem_range" text="Expected Range"/>
+		
+		<!-- GUI -->
+		<text name="moistureSystem_gui_cropGradeValues" text="Crop Grade Values"/>
 	</texts>
 </l10n>
