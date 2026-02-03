@@ -26,7 +26,7 @@
         <textSelectedColor value="$preset_fs25_colorMainDark" />
         <textDisabledColor value="$preset_colorDisabled" />
     </Profile>
-    <Profile name="msGroupsSliderBox" extends="fs25_listSliderBox" with="anchorTopRight" />
+    <Profile name="msGroupsSliderBox" extends="fs25_listSliderBox" with="anchorTopLeft" />
     <Profile name="msDescriptiveText" extends="fs25_textGrey" with="anchorTopLeft">
         <textMaxNumLines value="4"/>
         <textVerticalAlignment value="top"/>

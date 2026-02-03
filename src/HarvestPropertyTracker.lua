@@ -22,15 +22,15 @@ function HarvestPropertyTracker.new()
 
     -- Track tedded grid cells (will apply additional moisture reduction)
     self.teddedGridCells = {}
-    
+
     -- Track processed tedded cells with cooldown counter to prevent re-marking
     -- Value is number of update cycles remaining before cell can be marked again
     self.processedTeddedCells = {}
-    
+
     -- Track cells that are designated as "hay cells" (recently converted to hay)
     -- Value is number of update cycles remaining (10 cycles = 5 seconds at 500ms/cycle)
     self.hayCells = {}
-    
+
     -- Track moisture of grass being moved by tedder
     -- Key: "gridX_gridZ", Value: moisture value
     self.teddedGrassMoisture = {}
@@ -76,7 +76,16 @@ end
 -- @return true if grass type
 ---
 function HarvestPropertyTracker:isGrassFillType(fillType)
-    return fillType == FillType.GRASS or fillType == FillType.GRASS_WINDROW
+    local grasses = {
+        ["GRASS_WINDROW"] = true,
+        ["GRASS"] = true,
+        ["ALFALFA_WINDROW"] = true,
+        ["ALFALFA"] = true,
+        ["CLOVER_WINDROW"] = true,
+        ["CLOVER"] = true
+    }
+    local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
+    return grasses[fillTypeName] or false
 end
 
 ---
@@ -274,21 +283,21 @@ end
 ---
 function HarvestPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
     if not self.isServer then return end
-    
+
     -- Get all grid cells this area overlaps
     local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
-    
+
     -- Mark each cell as tedded only if not recently processed
     for _, cell in ipairs(affectedCells) do
         local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
-        
+
         -- Only mark if not in cooldown
         if not self.processedTeddedCells[gridKey] then
             self.teddedGridCells[gridKey] = true
             print(string.format("[TEDDER MARK] Cell (%d,%d) MARKED for tedding", cell.gridX, cell.gridZ))
         else
             local counter = self.processedTeddedCells[gridKey]
-            print(string.format("[TEDDER MARK] Cell (%d,%d) REJECTED - cooldown=%d cycles remaining", 
+            print(string.format("[TEDDER MARK] Cell (%d,%d) REJECTED - cooldown=%d cycles remaining",
                 cell.gridX, cell.gridZ, counter))
         end
     end
@@ -350,19 +359,19 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
         teddedCellsThisCycle[gridKey] = true
     end
     self.teddedGridCells = {}
-    
-    local processedThisCycle = {}  -- Track cells we've already processed to avoid double-reduction
+
+    local processedThisCycle = {} -- Track cells we've already processed to avoid double-reduction
 
     -- First: Force convert any grass in hay cells to hay
     local grassFillType = FillType.GRASS_WINDROW
     local hayFillType = g_fillTypeManager:getFillTypeIndexByName("DRYGRASS_WINDROW")
     local checkRadius = HarvestPropertyTracker.GRID_SIZE / 2
-    
+
     for gridKey, _ in pairs(self.hayCells) do
         local gridX, gridZ = gridKey:match("([^_]+)_([^_]+)")
         gridX = tonumber(gridX)
         gridZ = tonumber(gridZ)
-        
+
         -- Check if there's grass in this hay cell
         local grassVolume = DensityMapHeightUtil.getFillLevelAtArea(
             grassFillType,
@@ -370,10 +379,10 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
             gridX + checkRadius, gridZ - checkRadius,
             gridX - checkRadius, gridZ + checkRadius
         )
-        
+
         if grassVolume > 0 then
             print(string.format("[UPDATE] HAY CELL (%d,%d) forcing %.1fL grass to hay", gridX, gridZ, grassVolume))
-            
+
             local halfSize = HarvestPropertyTracker.GRID_SIZE / 2
             local buffer = halfSize * 0.2
             local sx = gridX - halfSize - buffer
@@ -382,15 +391,15 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
             local wz = gridZ - halfSize - buffer
             local hx = gridX - halfSize - buffer
             local hz = gridZ + halfSize + buffer
-            
+
             DensityMapHeightUtil.changeFillTypeAtArea(sx, sz, wx, wz, hx, hz, grassFillType, hayFillType)
-            
+
             -- Clean up any tracked grass pile in this cell
             local key = self:getGridKey(gridX, gridZ, grassFillType)
             if self.grassPiles[key] then
                 self.grassPiles[key] = nil
             end
-            
+
             -- Check for remaining content and cleanup
             self:checkPileHasContent(gridX, gridZ, hayFillType)
         end
@@ -398,14 +407,14 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
 
     -- Process tedded cells that don't have piles yet (newly dropped grass from tedder)
     local moistureSystem = g_currentMission.MoistureSystem
-    
+
     for gridKey, _ in pairs(teddedCellsThisCycle) do
         local gridX, gridZ = gridKey:match("([^_]+)_([^_]+)")
         gridX = tonumber(gridX)
         gridZ = tonumber(gridZ)
-        
+
         local key = self:getGridKey(gridX, gridZ, grassFillType)
-        
+
         -- Check if this cell already has a tracked pile
         if not self.grassPiles[key] then
             -- Check if there's actually grass on the ground at this location
@@ -415,7 +424,7 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
                 gridX + checkRadius, gridZ - checkRadius,
                 gridX - checkRadius, gridZ + checkRadius
             )
-            
+
             if existingVolume > 0 then
                 -- Normal tedded grass processing
                 local baseMoisture
@@ -429,31 +438,31 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
                     print(string.format("[UPDATE] Cell (%d,%d) NEW TEDDED GRASS: %.1fL at field %.1f%%",
                         gridX, gridZ, existingVolume, baseMoisture * 100))
                 end
-                
+
                 local teddedMoisture = baseMoisture - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
                 teddedMoisture = math.max(HarvestPropertyTracker.MIN_GRASS_MOISTURE,
                     math.min(HarvestPropertyTracker.MAX_GRASS_MOISTURE, teddedMoisture))
-                
+
                 print(string.format("[UPDATE] Cell (%d,%d) -> tedded %.1f%% (reduced by 5%%)",
                     gridX, gridZ, teddedMoisture * 100))
-                
+
                 self.grassPiles[key] = {
-                        gridX = gridX,
-                        gridZ = gridZ,
-                        fillType = grassFillType,
-                        properties = {
-                            moisture = teddedMoisture
-                        }
+                    gridX = gridX,
+                    gridZ = gridZ,
+                    fillType = grassFillType,
+                    properties = {
+                        moisture = teddedMoisture
                     }
-                    
-                    g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                        key, self.grassPiles[key].properties, grassFillType, gridX, gridZ
-                    ))
-                    
-                    -- Mark this cell as processed so we don't reduce it again in the second loop
-                    processedThisCycle[gridKey] = true
-                    -- Start cooldown to prevent immediate re-tedding
-                    self.processedTeddedCells[gridKey] = HarvestPropertyTracker.TEDDED_COOLDOWN_CYCLES
+                }
+
+                g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
+                    key, self.grassPiles[key].properties, grassFillType, gridX, gridZ
+                ))
+
+                -- Mark this cell as processed so we don't reduce it again in the second loop
+                processedThisCycle[gridKey] = true
+                -- Start cooldown to prevent immediate re-tedding
+                self.processedTeddedCells[gridKey] = HarvestPropertyTracker.TEDDED_COOLDOWN_CYCLES
             end
         end
     end
@@ -470,16 +479,16 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
                 local oldMoisture = pile.properties.moisture
                 totalDelta = totalDelta - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
                 print(string.format("[UPDATE] Cell (%d,%d) REDUCTION APPLIED: %.1f%% -> %.1f%%",
-                    pile.gridX, pile.gridZ, oldMoisture * 100, 
+                    pile.gridX, pile.gridZ, oldMoisture * 100,
                     (oldMoisture + totalDelta) * 100))
-                
+
                 local newMoisture = pile.properties.moisture + totalDelta
                 pile.properties.moisture = math.max(HarvestPropertyTracker.MIN_GRASS_MOISTURE,
                     math.min(HarvestPropertyTracker.MAX_GRASS_MOISTURE, newMoisture))
                 g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
                     key, pile.properties, pile.fillType, pile.gridX, pile.gridZ
                 ))
-                
+
                 -- Start cooldown for existing pile that was tedded
                 self.processedTeddedCells[gridKey] = HarvestPropertyTracker.TEDDED_COOLDOWN_CYCLES
             else
@@ -493,7 +502,7 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
             end
         end
     end
-    
+
     -- Decrement cooldown counters for processed tedded cells
     for gridKey, counter in pairs(self.processedTeddedCells) do
         self.processedTeddedCells[gridKey] = counter - 1
@@ -501,7 +510,7 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
             self.processedTeddedCells[gridKey] = nil
         end
     end
-    
+
     -- Decrement hay cell counters
     for gridKey, counter in pairs(self.hayCells) do
         self.hayCells[gridKey] = counter - 1
@@ -524,7 +533,7 @@ function HarvestPropertyTracker:checkPileHasContent(gridX, gridZ, fillType)
         gridX + checkRadius, gridZ - checkRadius,
         gridX - checkRadius, gridZ + checkRadius
     )
-    
+
     if volume <= 0 then
         local key = self:getGridKey(gridX, gridZ, fillType)
         local storage = self:isGrassFillType(fillType) and self.grassPiles or self.gridPiles

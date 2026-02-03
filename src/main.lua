@@ -10,6 +10,7 @@ function MoistureSystem:loadMap()
     self.currentMoisturePercent = 0
     self.timeSinceLastUpdate = 0
     self.updateInterval = 500
+    self.missionStarted = false
 
     self.settings = {
         environment = MoistureClampEnvironments.NORMAL,
@@ -158,7 +159,7 @@ function MoistureSystem:getMoistureAtPosition(x, z)
         local heightFactor = heightDiff / (heightRange / 2)
 
         -- Adjust moisture: higher elevation reduces moisture, lower increases it
-        local moistureLevel = self.currentMoisturePercent - (heightFactor * 0.05)
+        local moistureLevel = self.currentMoisturePercent - (heightFactor * 0.02)
         return math.max(minMoisture, math.min(maxMoisture, moistureLevel))
     else
         return self.currentMoisturePercent
@@ -311,6 +312,12 @@ function MoistureSystem:onStartMission()
     CropValueMap.initialize()
     local ms = g_currentMission.MoistureSystem
     ms:findMidHeight()
+    ms.missionStarted = true
+
+    -- for _, fruit in pairs(g_fruitTypeManager.nameToFruitType) do
+    --     -- print the name and fruit.name
+    --     print(string.format("%s", fruit.name))
+    -- end
 
     if g_currentMission:getIsServer() then
         -- Initialize mod on new game
@@ -470,7 +477,7 @@ end
 ---
 function MoistureSystem.ShowMoistureGUI()
     if g_gui.currentGui == nil then
-        -- g_currentMission.MoistureSystem:loadGUI() -- Useful when developing UI
+        g_currentMission.MoistureSystem:loadGUI() -- Useful when developing UI
         g_gui:showGui("MoistureGui")
     end
 end

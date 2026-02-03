@@ -21,7 +21,7 @@
         </GuiElement>
         
         <!-- Table Content -->
-        <SmoothList id="cropGradeTable" profile="msTable" position="0px -140px" size="1100px 600px">
+        <SmoothList id="cropGradeTable" profile="msTable" position="0px -140px" size="1100px 700px">
             <ListItem profile="msListItem">
                 <Text profile="msRowCellLeft" name="cropName" position="20px 0px" size="300px 20px" />
                 <Text profile="msRowCellLeft" name="gradeA" position="320px 0px" size="200px 20px" />
@@ -32,7 +32,7 @@
         </SmoothList>
         
         <!-- Scrollbar -->
-        <ThreePartBitmap profile="msGroupsSliderBox" position="1120px -140px" size="6px 600px">
+        <ThreePartBitmap profile="msGroupsSliderBox" position="1140px -140px" size="6px 700px">
             <Slider profile="fs25_listSlider" dataElementId="cropGradeTable" />
         </ThreePartBitmap>
     </GuiElement>

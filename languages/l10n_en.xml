@@ -21,6 +21,9 @@
 		<!-- Multiplayer Permission -->
 		<text name="permission_moisture_moistureSettings" text="Change Moisture Settings"/>
 		
+		<!-- Input Bindings -->
+		<text name="input_MOISTURE_MENU" text="Open Moisture Menu"/>
+		
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Field Moisture"/>
 		<text name="moistureSystem_moisture" text="Moisture"/>
