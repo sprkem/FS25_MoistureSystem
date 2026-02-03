@@ -54,9 +54,8 @@ function PilePropertyUpdateEvent:run(connection)
         ))
     end
 
-    local isGrass = self.fillTypeIndex == FillType.GRASS_WINDROW or self.fillTypeIndex == FillType.GRASS
-
     local tracker = g_currentMission.harvestPropertyTracker
+    local isGrass = tracker:isGrassFillType(self.fillTypeIndex)
     if isGrass and self.properties.moisture and self.properties.moisture <= MSTedderExtension.DRY_THRESHOLD then
         if g_currentMission:getIsServer() then
             -- Calculate area from grid position with 20% buffer to catch grass at edges
@@ -69,18 +68,18 @@ function PilePropertyUpdateEvent:run(connection)
             local hx = self.gridX - halfSize - buffer
             local hz = self.gridZ + halfSize + buffer
 
-            local grassFillType = g_fillTypeManager:getFillTypeIndexByName("GRASS_WINDROW")
+            -- local grassFillType = g_fillTypeManager:getFillTypeIndexByName("GRASS_WINDROW")
             local hayFillType = g_fillTypeManager:getFillTypeIndexByName("DRYGRASS_WINDROW")
             -- print(string.format("[HAY CONVERSION] Cell (%d,%d) moisture %.1f%% <= %.1f%% threshold - converting GRASS to HAY (with 20%% buffer)",
             --     self.gridX, self.gridZ, self.properties.moisture * 100, MSTedderExtension.DRY_THRESHOLD * 100))
-            DensityMapHeightUtil.changeFillTypeAtArea(sx, sz, wx, wz, hx, hz, grassFillType, hayFillType)
+            DensityMapHeightUtil.changeFillTypeAtArea(sx, sz, wx, wz, hx, hz, self.fillTypeIndex, hayFillType)
             
             -- Mark this cell as a "hay cell" for 5 seconds (10 cycles at 500ms each)
             local gridKey = tracker:getSimpleGridKey(self.gridX, self.gridZ)
             tracker.hayCells[gridKey] = 10
             
             -- Check and cleanup any remaining grass pile tracking
-            tracker:checkPileHasContent(self.gridX, self.gridZ, hayFillType)
+            -- tracker:checkPileHasContent(self.gridX, self.gridZ, hayFillType) -- I think not needed, we don't track hay
             tracker:checkPileHasContent(self.gridX, self.gridZ, self.fillTypeIndex)
         end
     else
