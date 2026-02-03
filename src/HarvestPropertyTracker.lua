@@ -230,10 +230,10 @@ function HarvestPropertyTracker:addPile(sx, sz, wx, wz, hx, hz, fillType, volume
                 if originalValue and totalVolume > 0 then
                     -- Volume-weighted average
                     newProperties[propKey] = (originalValue * existingVolume + propValue * volumeForCell) / totalVolume
-                    print(string.format(
-                        "[TRACKER] Grid (%d,%d) %s: Original=%.3f (%.1fL) + Incoming=%.3f (%.1fL) = Result=%.3f (%.1fL total)",
-                        cell.gridX, cell.gridZ, propKey, originalValue, existingVolume, propValue, volumeForCell,
-                        newProperties[propKey], totalVolume))
+                    -- print(string.format(
+                    --     "[TRACKER] Grid (%d,%d) %s: Original=%.3f (%.1fL) + Incoming=%.3f (%.1fL) = Result=%.3f (%.1fL total)",
+                    --     cell.gridX, cell.gridZ, propKey, originalValue, existingVolume, propValue, volumeForCell,
+                    --     newProperties[propKey], totalVolume))
                 else
                     newProperties[propKey] = propValue
                 end
@@ -250,9 +250,9 @@ function HarvestPropertyTracker:addPile(sx, sz, wx, wz, hx, hz, fillType, volume
             ))
 
             for propKey, propValue in pairs(properties or {}) do
-                print(string.format("[TRACKER CREATE] Grid (%d,%d) %s: NEW PILE = %.3f (%.1fL from %.1fL drop)",
-                    cell.gridX, cell.gridZ,
-                    propKey, propValue, volumeForCell, volume))
+                -- print(string.format("[TRACKER CREATE] Grid (%d,%d) %s: NEW PILE = %.3f (%.1fL from %.1fL drop)",
+                --     cell.gridX, cell.gridZ,
+                --     propKey, propValue, volumeForCell, volume))
             end
         end
     end
@@ -295,11 +295,11 @@ function HarvestPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
         -- Only mark if not in cooldown
         if not self.processedTeddedCells[gridKey] then
             self.teddedGridCells[gridKey] = true
-            print(string.format("[TEDDER MARK] Cell (%d,%d) MARKED for tedding", cell.gridX, cell.gridZ))
+            -- print(string.format("[TEDDER MARK] Cell (%d,%d) MARKED for tedding", cell.gridX, cell.gridZ))
         else
             local counter = self.processedTeddedCells[gridKey]
-            print(string.format("[TEDDER MARK] Cell (%d,%d) REJECTED - cooldown=%d cycles remaining",
-                cell.gridX, cell.gridZ, counter))
+            -- print(string.format("[TEDDER MARK] Cell (%d,%d) REJECTED - cooldown=%d cycles remaining",
+            --     cell.gridX, cell.gridZ, counter))
         end
     end
 end
@@ -382,7 +382,7 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
         )
 
         if grassVolume > 0 then
-            print(string.format("[UPDATE] HAY CELL (%d,%d) forcing %.1fL grass to hay", gridX, gridZ, grassVolume))
+            -- print(string.format("[UPDATE] HAY CELL (%d,%d) forcing %.1fL grass to hay", gridX, gridZ, grassVolume))
 
             local halfSize = HarvestPropertyTracker.GRID_SIZE / 2
             local buffer = halfSize * 0.2
@@ -431,21 +431,21 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
                 local baseMoisture
                 if self.teddedGrassMoisture[gridKey] then
                     baseMoisture = self.teddedGrassMoisture[gridKey]
-                    print(string.format("[UPDATE] Cell (%d,%d) NEW TEDDED GRASS: %.1fL at pickup %.1f%%",
-                        gridX, gridZ, existingVolume, baseMoisture * 100))
+                    -- print(string.format("[UPDATE] Cell (%d,%d) NEW TEDDED GRASS: %.1fL at pickup %.1f%%",
+                    --     gridX, gridZ, existingVolume, baseMoisture * 100))
                     self.teddedGrassMoisture[gridKey] = nil
                 else
                     baseMoisture = moistureSystem:getMoistureAtPosition(gridX, gridZ)
-                    print(string.format("[UPDATE] Cell (%d,%d) NEW TEDDED GRASS: %.1fL at field %.1f%%",
-                        gridX, gridZ, existingVolume, baseMoisture * 100))
+                    -- print(string.format("[UPDATE] Cell (%d,%d) NEW TEDDED GRASS: %.1fL at field %.1f%%",
+                    --     gridX, gridZ, existingVolume, baseMoisture * 100))
                 end
 
                 local teddedMoisture = baseMoisture - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
                 teddedMoisture = math.max(HarvestPropertyTracker.MIN_GRASS_MOISTURE,
                     math.min(HarvestPropertyTracker.MAX_GRASS_MOISTURE, teddedMoisture))
 
-                print(string.format("[UPDATE] Cell (%d,%d) -> tedded %.1f%% (reduced by 5%%)",
-                    gridX, gridZ, teddedMoisture * 100))
+                -- print(string.format("[UPDATE] Cell (%d,%d) -> tedded %.1f%% (reduced by 5%%)",
+                --     gridX, gridZ, teddedMoisture * 100))
 
                 self.grassPiles[key] = {
                     gridX = gridX,
@@ -479,9 +479,9 @@ function HarvestPropertyTracker:updateGrassMoisture(moistureDelta)
                 -- Apply tedding reduction
                 local oldMoisture = pile.properties.moisture
                 totalDelta = totalDelta - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
-                print(string.format("[UPDATE] Cell (%d,%d) REDUCTION APPLIED: %.1f%% -> %.1f%%",
-                    pile.gridX, pile.gridZ, oldMoisture * 100,
-                    (oldMoisture + totalDelta) * 100))
+                -- print(string.format("[UPDATE] Cell (%d,%d) REDUCTION APPLIED: %.1f%% -> %.1f%%",
+                --     pile.gridX, pile.gridZ, oldMoisture * 100,
+                --     (oldMoisture + totalDelta) * 100))
 
                 local newMoisture = pile.properties.moisture + totalDelta
                 pile.properties.moisture = math.max(HarvestPropertyTracker.MIN_GRASS_MOISTURE,
@@ -540,7 +540,7 @@ function HarvestPropertyTracker:checkPileHasContent(gridX, gridZ, fillType)
         local storage = self:isGrassFillType(fillType) and self.grassPiles or self.gridPiles
         if storage[key] then
             storage[key] = nil
-            print(string.format("[CLEANUP] Removed empty pile at (%d,%d)", gridX, gridZ))
+            -- print(string.format("[CLEANUP] Removed empty pile at (%d,%d)", gridX, gridZ))
         end
     end
 end

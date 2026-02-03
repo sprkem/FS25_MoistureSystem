@@ -25,6 +25,11 @@ function MoistureSystem:loadMap()
     -- Initialize vehicle/object moisture tracking
     self.objectMoisture = {}
 
+    -- Initialize LRU cache for getMoistureAtPosition
+    self.moistureCache = {}
+    self.moistureCacheOrder = {}
+    self.moistureCacheMaxSize = 10
+
     -- Load from XML file (called directly during loadMap, not via hook)
     self:loadFromXMLFile()
 
@@ -128,8 +133,8 @@ function MoistureSystem:adjustMoisture(delta)
 
     -- Get min/max for current month and environment
     local monthData = MoistureClamp.Environments[environment].Months[month]
-    local minMoisture = monthData.Min / 100 -- Convert to 0-1 scale
-    local maxMoisture = monthData.Max / 100 -- Convert to 0-1 scale
+    local minMoisture = monthData.Min / 100
+    local maxMoisture = monthData.Max / 100
 
     -- Apply delta and clamp to min/max range
     local newMoisture = math.max(minMoisture, math.min(maxMoisture, self.currentMoisturePercent + delta))
@@ -141,6 +146,12 @@ function MoistureSystem:adjustMoisture(delta)
 end
 
 function MoistureSystem:getMoistureAtPosition(x, z)
+    -- Check cache first (round to 5m grid for better hit rate)
+    local cacheKey = string.format("%d_%d", math.floor(x / 5) * 5, math.floor(z / 5) * 5)
+    if self.moistureCache[cacheKey] ~= nil then
+        return self.moistureCache[cacheKey]
+    end
+
     local height = getTerrainHeightAtWorldPos(g_terrainNode, x, 0, z)
 
     -- Get current month and environment for clamping
@@ -150,7 +161,7 @@ function MoistureSystem:getMoistureAtPosition(x, z)
     local minMoisture = monthData.Min / 100
     local maxMoisture = monthData.Max / 100
 
-    -- At midHeight, return currentMoisturePercent
+    local moistureLevel
     -- Higher elevation = lower moisture, lower elevation = higher moisture
     local heightRange = self.maxHeight - self.minHeight
     if heightRange > 0 then
@@ -159,11 +170,21 @@ function MoistureSystem:getMoistureAtPosition(x, z)
         local heightFactor = heightDiff / (heightRange / 2)
 
         -- Adjust moisture: higher elevation reduces moisture, lower increases it
-        local moistureLevel = self.currentMoisturePercent - (heightFactor * 0.02)
-        return math.max(minMoisture, math.min(maxMoisture, moistureLevel))
+        moistureLevel = self.currentMoisturePercent - (heightFactor * 0.02)
+        moistureLevel = math.max(minMoisture, math.min(maxMoisture, moistureLevel))
     else
-        return self.currentMoisturePercent
+        moistureLevel = self.currentMoisturePercent
     end
+
+    -- Store in cache with LRU eviction
+    if #self.moistureCacheOrder >= self.moistureCacheMaxSize then
+        local oldestKey = table.remove(self.moistureCacheOrder, 1)
+        self.moistureCache[oldestKey] = nil
+    end
+    self.moistureCache[cacheKey] = moistureLevel
+    table.insert(self.moistureCacheOrder, cacheKey)
+
+    return moistureLevel
 end
 
 function MoistureSystem:firstLoad()
@@ -342,6 +363,12 @@ function MoistureSystem:loadFromXMLFile()
     if fileExists(savegameFolderPath .. MoistureSystem.SaveKey .. ".xml") then
         local xmlFile = loadXMLFile(MoistureSystem.SaveKey, savegameFolderPath .. MoistureSystem.SaveKey .. ".xml")
 
+        -- Load current moisture level
+        local currentMoisture = getXMLFloat(xmlFile, MoistureSystem.SaveKey .. "#currentMoisturePercent")
+        if currentMoisture then
+            self.currentMoisturePercent = currentMoisture
+        end
+
         -- Load settings
         local environment = getXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment")
         if environment then
@@ -422,6 +449,9 @@ function MoistureSystem:saveToXmlFile()
         MoistureSystem.SaveKey)
 
     local ms = g_currentMission.MoistureSystem
+
+    -- Save current moisture level
+    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. "#currentMoisturePercent", ms.currentMoisturePercent)
 
     -- Save settings
     setXMLInt(xmlFile, MoistureSystem.SaveKey .. ".settings#environment", ms.settings.environment)

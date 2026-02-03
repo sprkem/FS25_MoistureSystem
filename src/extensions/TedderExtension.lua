@@ -63,8 +63,8 @@ function MSTedderExtension:processTedderArea(_, workArea, dt)
     if existingProps and existingProps.moisture then
         -- Grass already here with metadata - use it
         positionMoisture = existingProps.moisture
-        print(string.format("[TEDDER] Pickup at (%.0f,%.0f): Found pile moisture %.1f%%", centerX, centerZ,
-            positionMoisture * 100))
+        -- print(string.format("[TEDDER] Pickup at (%.0f,%.0f): Found pile moisture %.1f%%", centerX, centerZ,
+        --     positionMoisture * 100))
     else
         positionMoisture = nil
     end

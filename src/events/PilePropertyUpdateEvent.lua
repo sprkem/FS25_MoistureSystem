@@ -71,8 +71,8 @@ function PilePropertyUpdateEvent:run(connection)
 
             local grassFillType = g_fillTypeManager:getFillTypeIndexByName("GRASS_WINDROW")
             local hayFillType = g_fillTypeManager:getFillTypeIndexByName("DRYGRASS_WINDROW")
-            print(string.format("[HAY CONVERSION] Cell (%d,%d) moisture %.1f%% <= %.1f%% threshold - converting GRASS to HAY (with 20%% buffer)",
-                self.gridX, self.gridZ, self.properties.moisture * 100, MSTedderExtension.DRY_THRESHOLD * 100))
+            -- print(string.format("[HAY CONVERSION] Cell (%d,%d) moisture %.1f%% <= %.1f%% threshold - converting GRASS to HAY (with 20%% buffer)",
+            --     self.gridX, self.gridZ, self.properties.moisture * 100, MSTedderExtension.DRY_THRESHOLD * 100))
             DensityMapHeightUtil.changeFillTypeAtArea(sx, sz, wx, wz, hx, hz, grassFillType, hayFillType)
             
             -- Mark this cell as a "hay cell" for 5 seconds (10 cycles at 500ms each)
