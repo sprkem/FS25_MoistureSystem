@@ -271,6 +271,53 @@ function MoistureSystem:getObjectMoisture(uniqueId, fillType)
 end
 
 ---
+-- Check if an object still has any of a specific fillType
+-- @param uniqueId: The uniqueId of the object
+-- @param fillType: FillType index to check
+-- @return true if object has this fillType with fill level > 0
+---
+function MoistureSystem:hasFillType(uniqueId, fillType)
+    if uniqueId == nil or fillType == nil then
+        return false
+    end
+
+    if not self:shouldTrackFillType(fillType) then
+        return false
+    end
+
+    -- Get the object from the mission
+    local object = g_currentMission:getObjectByUniqueId(uniqueId)
+    if object == nil then
+        return false
+    end
+
+    if object.spec_silo then
+        if object.spec_silo.storages then
+            for _, storage in ipairs(object.spec_silo.storages) do
+                local fillLevel = storage:getFillLevel(fillType)
+                if fillLevel and fillLevel > 0 then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    if object.spec_fillUnit == nil or object.spec_fillUnit.fillUnits == nil then
+        return false
+    end
+
+    -- Check all fill units to see if any contain this fillType
+    for _, fillUnit in pairs(object.spec_fillUnit.fillUnits) do
+        if fillUnit.fillType == fillType and fillUnit.fillLevel > 0 then
+            return true
+        end
+    end
+
+    return false
+end
+
+---
 -- Set moisture level for an object/vehicle's specific fillType
 -- @param uniqueId: The uniqueId of the object
 -- @param fillType: FillType index
@@ -333,6 +380,11 @@ function MoistureSystem:transferObjectMoisture(sourceId, targetId, sourceLiters,
         local weightedMoisture = (targetCurrentLiters * targetMoisture) + (sourceLiters * sourceMoisture)
         self:setObjectMoisture(targetId, fillType, weightedMoisture / totalLiters)
     end
+
+    -- Clean up source moisture tracking if source no longer has this fillType
+    if not self:hasFillType(sourceId, fillType) then
+        self:setObjectMoisture(sourceId, fillType, nil)
+    end
 end
 
 ---
@@ -361,13 +413,13 @@ end
 function MoistureSystem:isHayFillType(fillType)
     local fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType)
     if not fillTypeName then return false end
-    
+
     local GRASS_CONVERSION_MAP = {
         ["GRASS_WINDROW"] = "DRYGRASS_WINDROW",
         ["ALFALFA_WINDROW"] = "DRYALFALFA_WINDROW",
         ["CLOVER_WINDROW"] = "DRYCLOVER_WINDROW"
     }
-    
+
     -- Check if this fillType is one of the hay conversion targets
     for _, hayType in pairs(GRASS_CONVERSION_MAP) do
         if fillTypeName == hayType then
