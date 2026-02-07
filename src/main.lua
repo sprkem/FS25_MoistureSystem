@@ -99,15 +99,16 @@ function MoistureSystem:updateMoistureLevel(delta)
     -- Get current weather conditions
     local rainfall = weather:getRainFallScale()
     local snowfall = weather:getSnowFallScale()
+    local hailfall = weather:getHailFallScale()
     local temperature = weather.temperatureUpdater.currentTemperature or 20
     local currentHour = g_currentMission.environment.currentHour
 
     -- Calculate moisture delta
     local moistureDelta = 0
 
-    -- Gain moisture from rain/snow
-    if rainfall > 0 or snowfall > 0 then
-        moistureDelta = (rainfall + snowfall * 0.75) * 0.009945 * scaledDelta *
+    -- Gain moisture from rain/snow/hail
+    if rainfall > 0 or snowfall > 0 or hailfall > 0 then
+        moistureDelta = (rainfall + snowfall * 0.75 + hailfall * 0.5) * 0.009945 * scaledDelta *
             self.settings.moistureGainMultiplier
         self:adjustMoisture(moistureDelta)
         return
