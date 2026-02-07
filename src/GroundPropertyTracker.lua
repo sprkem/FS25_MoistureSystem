@@ -1,7 +1,7 @@
 GroundPropertyTracker = {}
 local GroundPropertyTracker_mt = Class(GroundPropertyTracker)
 
-GroundPropertyTracker.GRID_SIZE = 5             -- 5m grid cells for consistent world grid
+GroundPropertyTracker.GRID_SIZE = 2             -- 2m grid cells for consistent world grid
 GroundPropertyTracker.MIN_GRASS_MOISTURE = 0.05 -- 5% minimum moisture for grass
 GroundPropertyTracker.MAX_GRASS_MOISTURE = 0.40 -- 40% maximum moisture for grass
 
@@ -19,6 +19,7 @@ function GroundPropertyTracker.new()
 
     self.mission = g_currentMission
     self.isServer = self.mission:getIsServer()
+    self.loadedGridSize = nil
 
     -- Main storage: grid-based piles indexed by "gridX_gridZ_fillType"
     self.gridPiles = {}
@@ -564,8 +565,140 @@ function GroundPropertyTracker:getPilePropertiesAtPosition(x, z, fillType)
     return nil
 end
 
+---
+-- Convert grid cells from one size to another
+-- Handles remapping when GRID_SIZE changes between save and load
+-- @param fromSize: Original grid size from saved data
+-- @param toSize: New grid size (current GRID_SIZE)
+---
+function GroundPropertyTracker:convertGridCells(fromSize, toSize)
+    if not self.isServer then return end
+    if fromSize == toSize then return end
+
+    -- Temporary storage for new cells with volume tracking
+    local newCells = {} -- [key] = { gridX, gridZ, fillType, isGrass, contributions[] }
+
+    -- Collect all existing piles
+    local oldPiles = {}
+
+    for key, pile in pairs(self.gridPiles) do
+        table.insert(oldPiles, {
+            gridX = pile.gridX,
+            gridZ = pile.gridZ,
+            fillType = pile.fillType,
+            properties = pile.properties,
+            isGrass = false
+        })
+    end
+
+    for key, pile in pairs(self.grassPiles) do
+        table.insert(oldPiles, {
+            gridX = pile.gridX,
+            gridZ = pile.gridZ,
+            fillType = pile.fillType,
+            properties = pile.properties,
+            isGrass = true
+        })
+    end
+
+    -- Clear existing storage
+    self.gridPiles = {}
+    self.grassPiles = {}
+
+    -- Process each old pile
+    for _, oldPile in ipairs(oldPiles) do
+        -- Calculate the area covered by the old grid cell
+        local halfOldSize = fromSize / 2
+        local minX = oldPile.gridX - halfOldSize
+        local maxX = oldPile.gridX + halfOldSize
+        local minZ = oldPile.gridZ - halfOldSize
+        local maxZ = oldPile.gridZ + halfOldSize
+
+        -- Find all new grid cells that overlap this old area
+        local startGridX = math.floor(minX / toSize) * toSize
+        local endGridX = math.floor(maxX / toSize) * toSize
+        local startGridZ = math.floor(minZ / toSize) * toSize
+        local endGridZ = math.floor(maxZ / toSize) * toSize
+
+        for gx = startGridX, endGridX, toSize do
+            for gz = startGridZ, endGridZ, toSize do
+                -- Get new grid center (aligned to new grid size)
+                local newGridX = gx + toSize / 2
+                local newGridZ = gz + toSize / 2
+
+                -- Check if there's actually material here
+                local checkRadius = toSize / 2
+                local volume = DensityMapHeightUtil.getFillLevelAtArea(
+                    oldPile.fillType,
+                    newGridX - checkRadius, newGridZ - checkRadius,
+                    newGridX + checkRadius, newGridZ - checkRadius,
+                    newGridX - checkRadius, newGridZ + checkRadius
+                )
+
+                if volume > 0 then
+                    local newKey = self:getGridKey(newGridX, newGridZ, oldPile.fillType)
+
+                    if not newCells[newKey] then
+                        newCells[newKey] = {
+                            gridX = newGridX,
+                            gridZ = newGridZ,
+                            fillType = oldPile.fillType,
+                            isGrass = oldPile.isGrass,
+                            contributions = {}
+                        }
+                    end
+
+                    -- Add this old pile's contribution
+                    table.insert(newCells[newKey].contributions, {
+                        volume = volume,
+                        properties = oldPile.properties
+                    })
+                end
+            end
+        end
+    end
+
+    -- Create final piles from accumulated contributions
+    for key, cell in pairs(newCells) do
+        local storage = cell.isGrass and self.grassPiles or self.gridPiles
+
+        storage[key] = {
+            gridX = cell.gridX,
+            gridZ = cell.gridZ,
+            fillType = cell.fillType,
+            properties = {}
+        }
+
+        -- Calculate volume-weighted average of properties from all contributions
+        local totalVolume = 0
+        local weightedProperties = {}
+
+        for _, contribution in ipairs(cell.contributions) do
+            totalVolume = totalVolume + contribution.volume
+            for propKey, propValue in pairs(contribution.properties) do
+                if not weightedProperties[propKey] then
+                    weightedProperties[propKey] = 0
+                end
+                weightedProperties[propKey] = weightedProperties[propKey] + (propValue * contribution.volume)
+            end
+        end
+
+        -- Calculate final averaged properties
+        if totalVolume > 0 then
+            for propKey, weightedValue in pairs(weightedProperties) do
+                storage[key].properties[propKey] = weightedValue / totalVolume
+            end
+        end
+    end
+
+    print(string.format("[TRACKER] Converted grid cells from size %dm to %dm. Old piles: %d, New cells: %d",
+        fromSize, toSize, #oldPiles, self:countTable(newCells)))
+end
+
 function GroundPropertyTracker:saveToXMLFile(xmlFile, key)
     if not self.isServer then return end
+
+    setXMLInt(xmlFile, key .. "#gridSize", GroundPropertyTracker.GRID_SIZE)
 
     local i = 0
     -- Save crop piles
@@ -609,6 +742,8 @@ end
 function GroundPropertyTracker:loadFromXMLFile(xmlFile, key)
     if not self.isServer then return end
 
+    self.loadedGridSize = getXMLInt(xmlFile, key .. "#gridSize") or 5
+
     local i = 0
     local loadedCount = 0
 
@@ -645,7 +780,7 @@ function GroundPropertyTracker:loadFromXMLFile(xmlFile, key)
         i = i + 1
     end
 
-    local cropCount = loadedCount
+    -- local cropCount = loadedCount
 
     -- Load grass piles
     i = 0

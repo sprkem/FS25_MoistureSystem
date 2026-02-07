@@ -493,15 +493,19 @@ function MoistureSystem:onStartMission()
     ms:setHeights()
     ms.missionStarted = true
 
-    -- for _, fruit in pairs(g_fruitTypeManager.nameToFruitType) do
-    --     -- print the name and fruit.name
-    --     print(string.format("%s", fruit.name))
-    -- end
-
     if g_currentMission:getIsServer() then
         -- Initialize mod on new game
         if not ms.didLoadFromXML then
             ms:firstLoad()
+        else
+            local loadedGridSize = g_currentMission.groundPropertyTracker.loadedGridSize
+            if loadedGridSize ~= GroundPropertyTracker.GRID_SIZE then
+                print(string.format(
+                    "GroundPropertyTracker: Grid size changed from %d to %d, converting saved data...",
+                    loadedGridSize, GroundPropertyTracker.GRID_SIZE
+                ))
+                g_currentMission.groundPropertyTracker:convertGridCells(loadedGridSize, GroundPropertyTracker.GRID_SIZE)
+            end
         end
     end
 end
