@@ -266,6 +266,7 @@ end
 ---
 -- Mark an area as tedded by adding to buffer with 6-cycle delay
 -- Only marks cells that haven't been processed recently (5 second cooldown)
+-- Only marks cells where >50% of the cell is within the tedded area
 -- @param sx, sz, wx, wz, hx, hz: Area corner coordinates
 ---
 function GroundPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
@@ -274,13 +275,20 @@ function GroundPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
     -- Get all grid cells this area overlaps
     local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
 
+    -- Calculate cell area for overlap threshold check
+    local cellArea = GroundPropertyTracker.GRID_SIZE * GroundPropertyTracker.GRID_SIZE
+    local overlapThreshold = cellArea * 0.5
+
     -- Add each cell to buffer with 6-cycle delay, only if not recently processed
     for _, cell in ipairs(affectedCells) do
-        local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
+        -- Only mark cells where more than 50% is within the tedded area
+        if cell.overlapArea > overlapThreshold then
+            local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
 
-        -- Only mark if not in cooldown and not already in buffer
-        if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] then
-            self.teddedGridCellsBuffer[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
+            -- Only mark if not in cooldown and not already in buffer
+            if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] then
+                self.teddedGridCellsBuffer[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
+            end
         end
     end
 end
@@ -288,6 +296,7 @@ end
 ---
 -- Mark an area as mowed by setting all overlapping grid cells to true
 -- Only marks cells that haven't been processed recently (2 second cooldown)
+-- Only marks cells where >50% of the cell is within the mowed area
 -- @param sx, sz, wx, wz, hx, hz: Area corner coordinates
 ---
 function GroundPropertyTracker:markAreaMowed(sx, sz, wx, wz, hx, hz)
@@ -296,13 +305,20 @@ function GroundPropertyTracker:markAreaMowed(sx, sz, wx, wz, hx, hz)
     -- Get all grid cells this area overlaps
     local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
 
+    -- Calculate cell area for overlap threshold check
+    local cellArea = GroundPropertyTracker.GRID_SIZE * GroundPropertyTracker.GRID_SIZE
+    local overlapThreshold = cellArea * 0.5
+
     -- Mark each cell as mowed with cooldown (skip drying for 4 seconds)
     for _, cell in ipairs(affectedCells) do
-        local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
+        -- Only mark cells where more than 50% is within the mowed area
+        if cell.overlapArea > overlapThreshold then
+            local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
 
-        -- Set cooldown to prevent drying for newly mowed grass
-        if not self.recentMowedCells[gridKey] then
-            self.recentMowedCells[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
+            -- Set cooldown to prevent drying for newly mowed grass
+            if not self.recentMowedCells[gridKey] then
+                self.recentMowedCells[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
+            end
         end
     end
 end

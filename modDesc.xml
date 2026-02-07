@@ -24,6 +24,7 @@ Beta Changelog:
 0.0.0.2 [WIP]:
 - Add console command "msSetMoisture" for testing (usage: msSetMoisture value[1-100]). Will not violate the months range.
 - Delay application of tedding moisture reduction briefly for better rendering
+- Address an issue where tedding adjacent up/down wide spread rows would apply tedding reduction to middle sections twice.
 
 0.0.0.1:
 - Initial release
