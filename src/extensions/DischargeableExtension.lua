@@ -156,9 +156,8 @@ function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, em
     local targetCurrentLiters = 0
     if targetObject ~= nil and targetObject.getFillUnitFillLevel ~= nil then
         targetCurrentLiters = targetObject:getFillUnitFillLevel(targetFillUnitIndex)
-    end
-
-    if targetObject.target ~= nil and targetObject.target:isa(UnloadingStation) then
+        -- if targetObject.target ~= nil and targetObject.target:isa(UnloadingStation) then
+    elseif targetObject.target ~= nil and targetObject.target.getFillLevel ~= nil then
         targetCurrentLiters = targetObject.target:getFillLevel(fillType, farmId)
     end
 
@@ -171,9 +170,15 @@ function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, em
         return dischargedLiters
     end
 
-    -- Get the moisture system
     local moistureSystem = g_currentMission.MoistureSystem
-    if moistureSystem == nil or targetObject == nil or uniqueId == nil then
+    if fillType == nil then
+        return dischargedLiters
+    end
+
+    if targetObject == nil or uniqueId == nil then
+        if not moistureSystem:hasFillType(self.uniqueId, fillType) then
+            moistureSystem:setObjectMoisture(self.uniqueId, fillType, nil)
+        end
         return dischargedLiters
     end
 

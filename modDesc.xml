@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="106">
     <author>Ozz</author>
-    <version>0.0.0.3</version>
+    <version>0.0.0.4</version>
     <iconFilename>icon_MoistureSystem.dds</iconFilename>
     <title>
         <en>Moisture System</en>
@@ -20,6 +20,9 @@ Features include terrain-based moisture variation, grass tedding and drying mech
 Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Beta Changelog:
+
+0.0.0.4 [WIP]:
+- Fix issue deposting material into husbandries.
 
 0.0.0.3:
 - Fix an issue when harvesting different moisture levels and how volume weighting is calculated.
