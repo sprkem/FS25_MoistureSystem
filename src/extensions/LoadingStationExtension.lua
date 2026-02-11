@@ -47,10 +47,8 @@ function MSLoadingStationExtension:addFillLevelToFillableObject(superFunc, filla
         end
     end
 
-    -- Call original function to perform the actual fill
     local actualFilledAmount = superFunc(self, fillableObject, fillUnitIndex, fillTypeIndex, fillDelta, fillInfo, toolType)
 
-    -- Only transfer moisture if something was actually filled
     if actualFilledAmount <= 0 then
         return actualFilledAmount
     end

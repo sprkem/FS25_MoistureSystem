@@ -13,10 +13,8 @@ MSForageWagonExtension = {}
 -- @param hasProcessed: Whether work areas were processed
 ---
 function MSForageWagonExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
-    -- Call original function first
     local result = superFunc(self, dt)
 
-    -- Only track on server
     if not self.isServer then
         return result
     end
@@ -95,8 +93,6 @@ function MSForageWagonExtension:onEndWorkAreaProcessing(superFunc, dt, hasProces
         moistureSystem:setObjectMoisture(uniqueId, fillType, averageMoisture)
     end
 
-    -- Remove pile from tracker (picked up from ground)
-    -- Tracker will check density map to see if pile still exists
     tracker:checkPileHasContent(centerX, centerZ, fillType)
 
     return result
@@ -112,21 +108,19 @@ end
 -- @param fillPositionData: Fill position data
 -- @param appliedDelta: Applied delta
 ---
-function MSForageWagonExtension:onFillUnitFillLevelChanged(superFunc, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData, appliedDelta)
-    -- Call original
-    if superFunc ~= nil then
-        superFunc(self, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData, appliedDelta)
-    end
-    
+function MSForageWagonExtension:onFillUnitFillLevelChanged(superFunc, fillUnitIndex, fillLevelDelta, fillTypeIndex,
+                                                           toolType, fillPositionData, appliedDelta)
+    superFunc(self, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData, appliedDelta)
+
     if not self.isServer then
         return
     end
-    
+
     local spec = self.spec_forageWagon
     if spec == nil or fillUnitIndex ~= spec.fillUnitIndex then
         return
     end
-    
+
     -- Clear moisture when tank is emptied
     local fillLevel = self:getFillUnitFillLevel(fillUnitIndex)
     if fillLevel <= 0.001 then

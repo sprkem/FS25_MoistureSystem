@@ -40,7 +40,6 @@ function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitInd
         return
     end
 
-    -- Only track on server and if we're adding material
     if not self.isServer or fillLevelDelta <= 0 then
         return
     end
@@ -48,12 +47,9 @@ function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitInd
     -- Try to get position from nodes
     local x, z
     if fillPositionData and fillPositionData.nodes and fillPositionData.nodes[1] then
-        -- local node = g_currentMission:getNodeObject(fillPositionData.nodes[1].node)
-        -- if node then
         local wx, wy, wz = getWorldTranslation(fillPositionData.nodes[1].node)
         x = wx
         z = wz
-        -- end
     end
 
     if x == nil or z == nil then
@@ -78,7 +74,6 @@ function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitInd
     if properties and properties.moisture then
         moisture = properties.moisture
     else
-        -- No pile tracked, use field moisture as fallback
         moisture = moistureSystem:getMoistureAtPosition(x, z)
     end
 
