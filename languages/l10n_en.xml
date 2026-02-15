@@ -61,5 +61,11 @@
 		<text name="moistureSystem_gui_moistureCalendar" text="Moisture Calendar"/>
 		<text name="moistureSystem_gui_currentEnvironment" text="Current Environment"/>
 		<text name="moistureSystem_gui_calendarDescription" text="The calendar below shows the expected moisture range for each month based on your current environment setting. Moisture levels are influenced by rainfall, temperature, and season."/>
+		
+		<!-- Hand Tool -->
+		<text name="moistureSystem_moistureMeter" text="Moisture Meter"/>
+		<text name="moistureSystem_moistureMeterFunction" text="Measure field moisture levels"/>
+		<text name="moistureSystem_measureLocation" text="Measure Moisture"/>
+		<text name="moistureSystem_groundMoistureReading" text="Ground Moisture: %.2f%%"/>
 	</texts>
 </l10n>

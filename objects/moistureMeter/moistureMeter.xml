@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<handTool type="moistureMeter" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../shared/xml/schema/handTool.xsd">
+	<storeData>
+		<name>$l10n_moistureSystem_moistureMeter</name>
+		<functions>
+			<function>$l10n_moistureSystem_moistureMeterFunction</function>
+		</functions>
+		<image>store_moistureMeter.dds</image>
+		<price>500</price>
+		<lifetime>1000</lifetime>
+		<dailyUpkeep>0</dailyUpkeep>
+		<rotation>0</rotation>
+		<brand>LIZARD</brand>
+		<species>HANDTOOL</species>
+		<category>handtoolsMisc</category>
+	</storeData>
+	
+	<base canBeDropped="true" canBeSaved="true">
+		<filename>objects/moistureMeter/moistureMeter.i3d</filename>
+		<typeDesc>$l10n_moistureSystem_moistureMeter</typeDesc>
+		<graphics node="graphics"/>
+		<handNode node="handNode"/>
+		<firstPersonNode node="firstPersonNode"/>
+	</base>
+	
+	<storable>
+		<holderType type="MOISTUREMETER" node="0>"/>
+	</storable>
+	
+	<moistureMeter>
+		<sounds>
+			<start file="objects/moistureMeter/sounds/start.ogg" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</start>
+			<cancel file="objects/moistureMeter/sounds/cancel.ogg" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</cancel>
+			<complete file="objects/moistureMeter/sounds/complete.ogg" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</complete>
+		</sounds>
+	</moistureMeter>
+	
+	<i3dMappings>
+		<i3dMapping id="graphics" node="0>0"/>
+		<i3dMapping id="handNode" node="0>1"/>
+		<i3dMapping id="firstPersonNode" node="0>2"/>
+	</i3dMappings>
+</handTool>

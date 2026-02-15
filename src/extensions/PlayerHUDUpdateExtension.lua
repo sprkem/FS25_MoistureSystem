@@ -67,21 +67,12 @@ function MSPlayerHUDExtension:showFieldInfo(x, z)
     -- Only show if we're on farmable ground
     if self.fieldInfo.groundType == FieldGroundType.NONE then return end
 
-    -- Get moisture at player position
-    local moisture = moistureSystem:getMoistureAtPosition(x, z)
-
     box:setTitle(g_i18n:getText("moistureSystem_fieldInfo"))
 
     -- Get current month for clamp ranges
     local currentMonth = MoistureSystem.periodToMonth(g_currentMission.environment.currentPeriod)
     local environment = moistureSystem.settings.environment
     local clamp = MoistureClamp.Environments[environment].Months[currentMonth]
-
-    -- Show current moisture
-    box:addLine(
-        g_i18n:getText("moistureSystem_moisture"),
-        string.format("%.1f%%", moisture * 100)
-    )
 
     -- Show expected range for this month/environment
     box:addLine(

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="106">
+<modDesc descVersion="105">
     <author>Ozz</author>
     <version>0.0.0.6</version>
     <iconFilename>icon_MoistureSystem.dds</iconFilename>
     <title>
         <en>Moisture System</en>
         <de>Feuchtigkeitssystem</de>
-        <fr>Système d'humidité</fr>
+        <fr>Système D'Humidité</fr>
     </title>
     <description>
         <en><![CDATA[Moisture System
@@ -22,6 +22,7 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 Beta Changelog:
 
 0.0.0.7 [WIP]:
+
 - Reworked ground material rotting to be based on rain exposure.
 
 0.0.0.6:
@@ -95,6 +96,7 @@ Beta Changelog:
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
         <sourceFile filename="src/events/PilePropertyUpdateEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
+        <sourceFile filename="src/handTools/MoistureMeterTool.lua"/>
         <sourceFile filename="src/main.lua"/>
     </extraSourceFiles>
     <multiplayer supported="true"/>
@@ -109,4 +111,8 @@ Beta Changelog:
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m" />
         </actionBinding>
     </inputBinding>
+    
+    <storeItems>
+        <storeItem xmlFilename="objects/moistureMeter/moistureMeter.xml"/>
+    </storeItems>
 </modDesc>
