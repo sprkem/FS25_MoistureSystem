@@ -20,6 +20,7 @@ end
 function HandToolMoistureMeter.registerEventListeners(handTool)
     SpecializationUtil.registerEventListener(handTool, "onPostLoad", HandToolMoistureMeter)
     SpecializationUtil.registerEventListener(handTool, "onDelete", HandToolMoistureMeter)
+    SpecializationUtil.registerEventListener(handTool, "onUpdate", HandToolMoistureMeter)
     SpecializationUtil.registerEventListener(handTool, "onDraw", HandToolMoistureMeter)
     SpecializationUtil.registerEventListener(handTool, "onHeldStart", HandToolMoistureMeter)
     SpecializationUtil.registerEventListener(handTool, "onHeldEnd", HandToolMoistureMeter)
@@ -42,6 +43,9 @@ function HandToolMoistureMeter:onPostLoad(savegame)
 
     spec.activateText = g_i18n:getText("moistureSystem_measureLocation")
     spec.isActive = false
+    spec.isHolding = false
+    spec.holdStartTime = 0
+    spec.holdDuration = 4000  -- 4 seconds in milliseconds
 
     print("[MoistureSystem] Moisture meter initialized")
 end
@@ -82,8 +86,8 @@ function HandToolMoistureMeter:onRegisterActionEvents()
         local _, eventId = self:addActionEvent(
             InputAction.ACTIVATE_HANDTOOL,
             self,
-            HandToolMoistureMeter.onActionFired,
-            false, true, false, true, nil
+            HandToolMoistureMeter.onActionCallback,
+            true, true, false, true, nil
         )
 
         local spec = self[specName]
@@ -95,9 +99,45 @@ function HandToolMoistureMeter:onRegisterActionEvents()
     end
 end
 
----Called when activate button is pressed
-function HandToolMoistureMeter:onActionFired()
-    self:performMeasurement()
+---Called when activate button is pressed or released
+---@param actionName string The action name
+---@param inputValue number > 0 when pressed, <= 0 when released
+function HandToolMoistureMeter:onActionCallback(actionName, inputValue)
+    local spec = self[specName]
+    local isPressed = inputValue > 0
+    
+    if isPressed then
+        -- Button pressed - start holding
+        if not spec.isHolding then
+            spec.isHolding = true
+            spec.holdStartTime = g_currentMission.time
+            print("[MoistureSystem] Measurement started - hold button for 4 seconds...")
+        end
+    else
+        -- Button released
+        if spec.isHolding then
+            local elapsedTime = g_currentMission.time - spec.holdStartTime
+            if elapsedTime < spec.holdDuration then
+                print("[MoistureSystem] Measurement cancelled - button released")
+            end
+            spec.isHolding = false
+        end
+    end
+end
+
+---Update function - check hold duration
+function HandToolMoistureMeter:onUpdate(dt)
+    local spec = self[specName]
+    
+    if spec.isHolding then
+        -- Check if hold duration reached
+        local elapsedTime = g_currentMission.time - spec.holdStartTime
+        if elapsedTime >= spec.holdDuration then
+            -- Perform measurement
+            spec.isHolding = false
+            self:performMeasurement()
+        end
+    end
 end
 
 ---Perform the measurement
