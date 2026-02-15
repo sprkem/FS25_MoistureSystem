@@ -108,6 +108,30 @@ function MSBaleExtension:setWrappingState(superFunc, wrappingState, updateFermen
     end
 end
 
+---
+-- Check if bale is currently rotting (needed for PlaceableObjectStorage to keep bale alive)
+-- @return Boolean - true if bale is in a rotting state
+---
+function MSBaleExtension:getIsRotting()
+    if not g_currentMission or not g_currentMission.baleRottingSystem then
+        return false
+    end
+    
+    local baleData = g_currentMission.baleRottingSystem.baleRainExposureTimes[self.uniqueId]
+    if not baleData then
+        return false
+    end
+    
+    local BaleRottingSystem = g_currentMission.baleRottingSystem
+    
+    -- Consider bale as "rotting" if it's in any rotting state
+    return baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_SLOWLY or
+           baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING or
+           baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY or
+           -- Also consider "getting wet" state to ensure tracking continues
+           baleData.status == BaleRottingSystem.BALE_STATUS.GETTING_WET
+end
+
 Bale.onFermentationEnd = Utils.overwrittenFunction(
     Bale.onFermentationEnd,
     MSBaleExtension.onFermentationEnd
@@ -122,3 +146,6 @@ Bale.setWrappingState = Utils.overwrittenFunction(
     Bale.setWrappingState,
     MSBaleExtension.setWrappingState
 )
+
+-- Add getIsRotting as a method
+Bale.getIsRotting = MSBaleExtension.getIsRotting

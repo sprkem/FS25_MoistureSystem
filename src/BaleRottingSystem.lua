@@ -237,6 +237,13 @@ function BaleRottingSystem:update(dt)
     for i = #balesToDelete, 1, -1 do
         local bale = balesToDelete[i]
         self.baleRainExposureTimes[bale.uniqueId] = nil
+        
+        -- Check if bale is in storage and remove it first
+        local storage = MSPlaceableObjectStorageExtension.findStorageForBale(bale)
+        if storage then
+            storage:removeRottedBaleFromStorage(bale)
+        end
+        
         bale:delete()
     end
 
