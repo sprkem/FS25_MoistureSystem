@@ -80,6 +80,7 @@ Beta Changelog:
         <sourceFile filename="src/extensions/ForageWagonExtension.lua"/>
         <sourceFile filename="src/extensions/BalerExtension.lua"/>
         <sourceFile filename="src/extensions/BaleExtension.lua"/>
+        <sourceFile filename="src/extensions/PlaceableObjectStorageExtension.lua"/>
         <sourceFile filename="src/extensions/FillVolumeExtension.lua"/>
         <sourceFile filename="src/extensions/MowerExtension.lua"/>
         <sourceFile filename="src/extensions/TedderExtension.lua"/>

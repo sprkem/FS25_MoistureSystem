@@ -1,11 +1,6 @@
 ----------------------------------------------------------------------------------------------------
 -- HandToolMoistureMeter
 ----------------------------------------------------------------------------------------------------
--- Purpose:  Specialization for Moisture Meter hand tool
---           Prints player location and field moisture when activated
---
--- Copyright (c) 2025
-----------------------------------------------------------------------------------------------------
 
 HandToolMoistureMeter = {}
 
@@ -38,7 +33,6 @@ end
 
 ---Check if prerequisites are present
 function HandToolMoistureMeter.prerequisitesPresent()
-    print("[MoistureSystem] Loaded handTool: HandToolMoistureMeter")
     return true
 end
 
@@ -65,8 +59,6 @@ function HandToolMoistureMeter:onPostLoad(savegame)
     spec.holdStartTime = 0
     spec.holdDuration = 4000 -- 4 seconds in milliseconds
     spec.lastSoundSecond = 0 -- Track which second we last played a sound for
-
-    print("[MoistureSystem] Moisture meter initialized")
 end
 
 ---Cleanup
@@ -89,8 +81,6 @@ function HandToolMoistureMeter:onHeldStart()
 
     local spec = self[specName]
     spec.isActive = true
-
-    print("[MoistureSystem] Moisture meter picked up")
 end
 
 ---Called when player drops/holsters the tool
@@ -99,8 +89,6 @@ function HandToolMoistureMeter:onHeldEnd()
 
     local spec = self[specName]
     spec.isActive = false
-
-    print("[MoistureSystem] Moisture meter put away")
 end
 
 ---Register action events (button bindings)
@@ -135,7 +123,6 @@ function HandToolMoistureMeter:onActionCallback(actionName, inputValue)
             spec.isHolding = true
             spec.holdStartTime = g_currentMission.time
             spec.lastSoundSecond = 0 -- Reset sound tracking
-            print("[MoistureSystem] Measurement started - hold button for 4 seconds...")
 
             -- Play start sound
             if self.isClient and spec.samples ~= nil and spec.samples.start ~= nil then
@@ -147,8 +134,6 @@ function HandToolMoistureMeter:onActionCallback(actionName, inputValue)
         if spec.isHolding then
             local elapsedTime = g_currentMission.time - spec.holdStartTime
             if elapsedTime < spec.holdDuration then
-                print("[MoistureSystem] Measurement cancelled - button released")
-
                 -- Play cancel sound
                 if self.isClient and spec.samples ~= nil and spec.samples.cancel ~= nil then
                     g_soundManager:playSample(spec.samples.cancel)
@@ -166,7 +151,7 @@ function HandToolMoistureMeter:onUpdate(dt)
     if spec.isHolding then
         -- Check if hold duration reached
         local elapsedTime = g_currentMission.time - spec.holdStartTime
-        
+
         -- Play start sound at 1, 2, and 3 second marks
         local currentSecond = math.floor(elapsedTime / 1000)
         if currentSecond > spec.lastSoundSecond and currentSecond < 4 then
@@ -175,7 +160,7 @@ function HandToolMoistureMeter:onUpdate(dt)
                 g_soundManager:playSample(spec.samples.start)
             end
         end
-        
+
         if elapsedTime >= spec.holdDuration then
             -- Perform measurement
             spec.isHolding = false

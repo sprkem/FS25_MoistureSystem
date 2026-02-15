@@ -237,6 +237,13 @@ function BaleRottingSystem:update(dt)
     for i = #balesToDelete, 1, -1 do
         local bale = balesToDelete[i]
         self.baleRainExposureTimes[bale.uniqueId] = nil
+
+        -- Check if bale is in storage and remove it first
+        local storage = MSPlaceableObjectStorageExtension.findStorageForBale(bale)
+        if storage then
+            MSPlaceableObjectStorageExtension.removeRottedBaleFromStorage(storage, bale)
+        end
+
         bale:delete()
     end
 
@@ -332,17 +339,17 @@ end
 ---
 function BaleRottingSystem:removeBaleIfNotRotting(uniqueId)
     if not self.isServer then return false end
-    
+
     local baleData = self.baleRainExposureTimes[uniqueId]
     if not baleData then
         return true
     end
-    
+
     if baleData.status < self.BALE_STATUS.ROTTING_SLOWLY then
         self.baleRainExposureTimes[uniqueId] = nil
         return true
     end
-    
+
     return false
 end
 
@@ -368,7 +375,7 @@ function BaleRottingSystem:saveToXMLFile(xmlFile, key)
         -- Only save if bale still exists
         if g_currentMission.itemSystem.itemByUniqueId[uniqueId] then
             local baleKey = string.format("%s.baleRotting.bale(%d)", key, i)
-            setXMLInt(xmlFile, baleKey .. "#uniqueId", uniqueId)
+            setXMLString(xmlFile, baleKey .. "#uniqueId", uniqueId)
             setXMLInt(xmlFile, baleKey .. "#exposureTime", math.floor(baleData.exposure))
             setXMLInt(xmlFile, baleKey .. "#peakExposure", math.floor(baleData.peakExposure))
             i = i + 1
@@ -392,19 +399,17 @@ function BaleRottingSystem:loadFromXMLFile(xmlFile, key)
             break
         end
 
-        local uniqueId = getXMLInt(xmlFile, baleKey .. "#uniqueId")
+        local uniqueId = getXMLString(xmlFile, baleKey .. "#uniqueId")
         local exposureTime = getXMLInt(xmlFile, baleKey .. "#exposureTime")
         local peakExposure = getXMLInt(xmlFile, baleKey .. "#peakExposure") or exposureTime
 
-        -- Only restore if bale still exists
-        if g_currentMission.itemSystem.itemByUniqueId[uniqueId] then
-            -- Status will be computed on first update
-            self.baleRainExposureTimes[uniqueId] = {
-                exposure = exposureTime,
-                peakExposure = peakExposure,
-                status = self.BALE_STATUS.DRYING -- Default status until next update
-            }
-        end
+        -- Load ALL rotting data, even for bales in storage (they're deleted from itemSystem)
+        -- Status will be computed on first update
+        self.baleRainExposureTimes[uniqueId] = {
+            exposure = exposureTime,
+            peakExposure = peakExposure,
+            status = self.BALE_STATUS.DRYING -- Default status until next update
+        }
 
         i = i + 1
     end

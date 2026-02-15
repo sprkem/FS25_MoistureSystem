@@ -21,20 +21,16 @@ if xmlFile ~= nil then
         local name = xmlFile:getString(key .. "#name")
         local className = xmlFile:getString(key .. "#className")
         local filename = xmlFile:getString(key .. "#filename")
-        
+
         g_handToolSpecializationManager:addSpecialization(name, className, modDirectory .. filename)
-        
-        print(string.format("[MoistureSystem] Registered hand tool specialization: %s", name))
     end)
-    
+
     -- Register types
     xmlFile:iterate("handTools.types.type", function(_, key)
         g_handToolTypeManager:loadTypeFromXML(xmlFile.handle, key, false, nil, modName)
-        
+
         MSHandTools.xmlPaths[xmlFile:getString(key .. "#name")] = modDirectory .. xmlFile:getString(key .. "#xmlFile")
-        
-        print(string.format("[MoistureSystem] Registered hand tool type: %s", xmlFile:getString(key .. "#name")))
     end)
-    
+
     xmlFile:delete()
 end

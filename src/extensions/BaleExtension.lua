@@ -94,11 +94,11 @@ end
 ---
 function MSBaleExtension:setWrappingState(superFunc, wrappingState, updateFermentation)
     superFunc(self, wrappingState, updateFermentation)
-    
+
     if not self.isServer then
         return
     end
-    
+
     -- When bale becomes wrapped (wrappingState >= 1), remove from rotting tracking if not rotting
     if wrappingState >= 1 then
         local baleRottingSystem = g_currentMission.baleRottingSystem
@@ -106,6 +106,32 @@ function MSBaleExtension:setWrappingState(superFunc, wrappingState, updateFermen
             baleRottingSystem:removeBaleIfNotRotting(self.uniqueId)
         end
     end
+end
+
+---
+-- Check if bale is currently rotting (needed for PlaceableObjectStorage to keep bale alive)
+-- @return Boolean - true if bale is in a rotting state
+---
+function MSBaleExtension:getIsRotting()
+    if not g_currentMission or not g_currentMission.baleRottingSystem then
+        return false
+    end
+
+    local baleData = g_currentMission.baleRottingSystem.baleRainExposureTimes[self.uniqueId]
+    if not baleData then
+        return false
+    end
+
+    local BaleRottingSystem = g_currentMission.baleRottingSystem
+
+    -- Consider bale as "rotting" if it's in any rotting state
+    local isRotting = baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_SLOWLY or
+        baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING or
+        baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY or
+        -- Also consider "getting wet" state to ensure tracking continues
+        baleData.status == BaleRottingSystem.BALE_STATUS.GETTING_WET
+
+    return isRotting
 end
 
 Bale.onFermentationEnd = Utils.overwrittenFunction(
@@ -118,7 +144,48 @@ Bale.delete = Utils.overwrittenFunction(
     MSBaleExtension.delete
 )
 
+---
+-- Override getBaleAttributes to include uniqueId for storage save/load
+-- @param superFunc: Original function
+-- @return table of bale attributes including uniqueId
+---
+function MSBaleExtension:getBaleAttributes(superFunc)
+    local attributes = superFunc(self)
+
+    -- Add uniqueId to attributes so we can restore rotting state after load
+    attributes.uniqueId = self.uniqueId
+
+    return attributes
+end
+
+---
+-- Override applyBaleAttributes to restore uniqueId from storage
+-- @param superFunc: Original function
+-- @param attributes: Table of bale attributes
+---
+function MSBaleExtension:applyBaleAttributes(superFunc, attributes)
+    superFunc(self, attributes)
+
+    -- Restore uniqueId if it was saved
+    if attributes.uniqueId then
+        self.uniqueId = attributes.uniqueId
+    end
+end
+
 Bale.setWrappingState = Utils.overwrittenFunction(
     Bale.setWrappingState,
     MSBaleExtension.setWrappingState
 )
+
+Bale.getBaleAttributes = Utils.overwrittenFunction(
+    Bale.getBaleAttributes,
+    MSBaleExtension.getBaleAttributes
+)
+
+Bale.applyBaleAttributes = Utils.overwrittenFunction(
+    Bale.applyBaleAttributes,
+    MSBaleExtension.applyBaleAttributes
+)
+
+-- Add getIsRotting as a method
+Bale.getIsRotting = MSBaleExtension.getIsRotting

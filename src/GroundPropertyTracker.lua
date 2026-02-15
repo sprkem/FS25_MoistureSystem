@@ -663,17 +663,18 @@ function GroundPropertyTracker:updateGrassMoisture(moistureDelta, dt)
             end
         else
             -- Drying: exposure decrements slowly
-            pile.properties.rainExposure = math.max(0, pile.properties.rainExposure - (updateDelta * GroundPropertyTracker.DRYING_DECAY_RATE))
-            
+            pile.properties.rainExposure = math.max(0,
+                pile.properties.rainExposure - (updateDelta * GroundPropertyTracker.DRYING_DECAY_RATE))
+
             -- If we've dried below slow rot threshold and haven't started rotting, reset peak
             if pile.properties.rainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME and
-               pile.properties.peakRainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
+                pile.properties.peakRainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
                 pile.properties.peakRainExposure = pile.properties.rainExposure
             end
         end
 
         -- Determine rot level based on peak exposure
-        local rotLevel = 0  -- 0 = none, 1 = slow, 2 = normal
+        local rotLevel = 0 -- 0 = none, 1 = slow, 2 = normal
         if pile.properties.peakRainExposure >= GroundPropertyTracker.NORMAL_ROT_EXPOSURE_TIME then
             rotLevel = 2
         elseif pile.properties.peakRainExposure >= GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
@@ -690,7 +691,7 @@ function GroundPropertyTracker:updateGrassMoisture(moistureDelta, dt)
             -- Add randomized accumulation amount based on rot level
             local baseAmount = GroundPropertyTracker.ROT_ACCUMULATION_MIN +
                 math.random() * (GroundPropertyTracker.ROT_ACCUMULATION_MAX - GroundPropertyTracker.ROT_ACCUMULATION_MIN)
-            
+
             -- Scale by rot level (slow = 1x, normal = 2x)
             local scaledAmount = baseAmount * rotLevel
             self.grassRotAccumulators[key] = self.grassRotAccumulators[key] + scaledAmount
@@ -897,17 +898,18 @@ function GroundPropertyTracker:updateStrawMoisture(moistureDelta, dt)
             end
         else
             -- Drying: exposure decrements slowly
-            pile.properties.rainExposure = math.max(0, pile.properties.rainExposure - (updateDelta * GroundPropertyTracker.DRYING_DECAY_RATE))
-            
+            pile.properties.rainExposure = math.max(0,
+                pile.properties.rainExposure - (updateDelta * GroundPropertyTracker.DRYING_DECAY_RATE))
+
             -- If we've dried below slow rot threshold and haven't started rotting, reset peak
             if pile.properties.rainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME and
-               pile.properties.peakRainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
+                pile.properties.peakRainExposure < GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
                 pile.properties.peakRainExposure = pile.properties.rainExposure
             end
         end
 
         -- Determine rot level based on peak exposure
-        local rotLevel = 0  -- 0 = none, 1 = slow, 2 = normal
+        local rotLevel = 0 -- 0 = none, 1 = slow, 2 = normal
         if pile.properties.peakRainExposure >= GroundPropertyTracker.NORMAL_ROT_EXPOSURE_TIME then
             rotLevel = 2
         elseif pile.properties.peakRainExposure >= GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME then
@@ -924,7 +926,7 @@ function GroundPropertyTracker:updateStrawMoisture(moistureDelta, dt)
             -- Add randomized accumulation amount based on rot level
             local baseAmount = GroundPropertyTracker.ROT_ACCUMULATION_MIN +
                 math.random() * (GroundPropertyTracker.ROT_ACCUMULATION_MAX - GroundPropertyTracker.ROT_ACCUMULATION_MIN)
-            
+
             -- Scale by rot level (slow = 1x, normal = 2x)
             local scaledAmount = baseAmount * rotLevel
             self.strawRotAccumulators[key] = self.strawRotAccumulators[key] + scaledAmount
@@ -1219,9 +1221,6 @@ function GroundPropertyTracker:convertGridCells(fromSize, toSize)
             end
         end
     end
-
-    print(string.format("[TRACKER] Converted grid cells from size %dm to %dm. Old piles: %d, New cells: %d",
-        fromSize, toSize, #oldPiles, self:countTable(newCells)))
 end
 
 function GroundPropertyTracker:saveToXMLFile(xmlFile, key)

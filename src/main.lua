@@ -612,6 +612,9 @@ function MoistureSystem:onStartMission()
                 g_currentMission.groundPropertyTracker:convertGridCells(loadedGridSize, GroundPropertyTracker.GRID_SIZE)
             end
         end
+        
+        -- Convert rotting bales in storage to live storage (after rotting data is loaded)
+        MSPlaceableObjectStorageExtension.convertRottingBalesToLiveStorage()
     end
 end
 
@@ -719,6 +722,32 @@ function MoistureSystem:loadFromXMLFile()
             i = i + 1
         end
 
+        -- Load storage bale uniqueId mappings
+        i = 0
+        while true do
+            local storageKey = string.format("%s.storageBales.bale(%d)", MoistureSystem.SaveKey, i)
+            if not hasXMLProperty(xmlFile, storageKey) then
+                break
+            end
+
+            local placeableId = getXMLString(xmlFile, storageKey .. "#placeableId")
+            local objectIndex = getXMLInt(xmlFile, storageKey .. "#objectIndex")  -- 0-based
+            local uniqueId = getXMLString(xmlFile, storageKey .. "#uniqueId")
+
+            if placeableId and objectIndex ~= nil and uniqueId then
+                -- Store mapping to apply when loading storage (will be done by loadFromXMLFile override)
+                if not self.pendingStorageBaleIds then
+                    self.pendingStorageBaleIds = {}
+                end
+                if not self.pendingStorageBaleIds[placeableId] then
+                    self.pendingStorageBaleIds[placeableId] = {}
+                end
+                self.pendingStorageBaleIds[placeableId][objectIndex] = uniqueId
+            end
+
+            i = i + 1
+        end
+
         self.didLoadFromXML = true
         delete(xmlFile)
     end
@@ -760,6 +789,32 @@ function MoistureSystem:saveToXmlFile()
 
     if g_currentMission.baleRottingSystem then
         g_currentMission.baleRottingSystem:saveToXMLFile(xmlFile, MoistureSystem.SaveKey)
+    end
+
+    -- Save storage bale uniqueId mappings (can't save in storage XML due to schema restrictions)
+    local storageIndex = 0
+    for _, placeable in pairs(g_currentMission.placeableSystem.placeables) do
+        if placeable.spec_objectStorage then
+            local spec = placeable.spec_objectStorage
+            if spec.storedObjects then
+                for objectIndex, abstractObject in ipairs(spec.storedObjects) do
+                    local baleUniqueId = nil
+                    if abstractObject.baleObject then
+                        baleUniqueId = abstractObject.baleObject.uniqueId
+                    elseif abstractObject.baleAttributes and abstractObject.baleAttributes.uniqueId then
+                        baleUniqueId = abstractObject.baleAttributes.uniqueId
+                    end
+                    
+                    if baleUniqueId then
+                        local storageKey = string.format("%s.storageBales.bale(%d)", MoistureSystem.SaveKey, storageIndex)
+                        setXMLString(xmlFile, storageKey .. "#placeableId", placeable.uniqueId)
+                        setXMLInt(xmlFile, storageKey .. "#objectIndex", objectIndex - 1)  -- 0-based for consistency
+                        setXMLString(xmlFile, storageKey .. "#uniqueId", baleUniqueId)
+                        storageIndex = storageIndex + 1
+                    end
+                end
+            end
+        end
     end
 
     -- Save object moisture data

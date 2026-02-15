@@ -29,11 +29,6 @@ function MoistureUpdateEvent:run(connection)
     end
 
     g_currentMission.MoistureSystem.currentMoisturePercent = self.moisturePercent
-    
-    -- Clear moisture position cache since base moisture changed
-    -- loc1al cacheSize = #g_currentMission.MoistureSystem.moistureCacheOrder
     g_currentMission.MoistureSystem.moistureCache = {}
     g_currentMission.MoistureSystem.moistureCacheOrder = {}
-    -- print(string.format("[MoistureCache] CLEARED: All %d entries (moisture updated to %.1f%%)", 
-    --     cacheSize, self.moisturePercent * 100))
 end
