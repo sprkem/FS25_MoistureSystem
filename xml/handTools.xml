@@ -1,0 +1,10 @@
+<handTools>
+	<types>
+		<type name="moistureMeter" parent="base" xmlFile="objects/moistureMeter/moistureMeter.xml">
+			<specialization name="moistureMeter"/>
+		</type>
+	</types>
+	<specializations>
+		<specialization name="moistureMeter" className="HandToolMoistureMeter" filename="src/handTools/specializations/HandToolMoistureMeter.lua"/>
+	</specializations>
+</handTools>

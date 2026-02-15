@@ -49,6 +49,7 @@ function MoistureSystem:loadMap()
 
     if g_addCheatCommands and g_currentMission:getIsServer() then
         addConsoleCommand("msSetMoisture", "Set Moisture", "consoleCommandSetMoisture", self)
+        addConsoleCommand("msSpawnMeter", "Spawn Moisture Meter", "consoleCommandSpawnMeter", self)
     end
 end
 
@@ -64,9 +65,34 @@ function MoistureSystem:consoleCommandSetMoisture(newMoisture)
     return string.format("New moisture is %.3f", newMoistureNum)
 end
 
+function MoistureSystem:consoleCommandSpawnMeter()
+    if not g_currentMission:getIsServer() then return "Server only command" end
+    
+    local xmlFilename = MoistureSystem.dir .. "objects/moistureMeter/moistureMeter.xml"
+    local typeName = g_currentModName .. ".moistureMeter"
+    local handToolType = g_handToolTypeManager:getTypeByName(typeName)
+    
+    if handToolType == nil then
+        return string.format("Hand tool type not found: %s", typeName)
+    end
+    
+    local handTool = _G[handToolType.className].new(g_currentMission:getIsServer(), g_currentMission:getIsClient())
+    handTool:setType(handToolType)
+    
+    -- Load the hand tool
+    if handTool:load(xmlFilename) then
+        g_currentMission.handToolSystem:addHandTool(handTool)
+        print("[MoistureSystem] Moisture meter spawned successfully")
+        return "Moisture meter spawned"
+    else
+        return "Failed to spawn moisture meter"
+    end
+end
+
 function MoistureSystem:delete()
     if g_addCheatCommands then
         removeConsoleCommand("msSetMoisture")
+        removeConsoleCommand("msSpawnMeter")
     end
 end
 
