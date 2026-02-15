@@ -11,6 +11,15 @@ HandToolMoistureMeter = {}
 
 local specName = "spec_FS25_MoistureSystem.moistureMeter"
 
+---Register XML paths
+function HandToolMoistureMeter.registerXMLPaths(xmlSchema)
+    xmlSchema:setXMLSpecializationType("HandToolMoistureMeter")
+    SoundManager.registerSampleXMLPaths(xmlSchema, "handTool.moistureMeter.sounds", "start")
+    SoundManager.registerSampleXMLPaths(xmlSchema, "handTool.moistureMeter.sounds", "cancel")
+    SoundManager.registerSampleXMLPaths(xmlSchema, "handTool.moistureMeter.sounds", "complete")
+    xmlSchema:setXMLSpecializationType()
+end
+
 ---Register functions
 function HandToolMoistureMeter.registerFunctions(handTool)
     SpecializationUtil.registerFunction(handTool, "performMeasurement", HandToolMoistureMeter.performMeasurement)
@@ -39,6 +48,12 @@ function HandToolMoistureMeter:onPostLoad(savegame)
 
     if self.isClient then
         spec.defaultCrosshair = self:createCrosshairOverlay("gui.crosshairDefault")
+        
+        -- Load sounds
+        spec.samples = {}
+        spec.samples.start = g_soundManager:loadSampleFromXML(self.xmlFile, "handTool.moistureMeter.sounds", "start", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
+        spec.samples.cancel = g_soundManager:loadSampleFromXML(self.xmlFile, "handTool.moistureMeter.sounds", "cancel", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
+        spec.samples.complete = g_soundManager:loadSampleFromXML(self.xmlFile, "handTool.moistureMeter.sounds", "complete", self.baseDirectory, self.components, 1, AudioGroup.VEHICLE, self.i3dMappings, self)
     end
 
     spec.activateText = g_i18n:getText("moistureSystem_measureLocation")
@@ -57,6 +72,10 @@ function HandToolMoistureMeter:onDelete()
     if spec.defaultCrosshair ~= nil then
         spec.defaultCrosshair:delete()
         spec.defaultCrosshair = nil
+    end
+    
+    if spec.samples ~= nil then
+        g_soundManager:deleteSamples(spec.samples)
     end
 end
 
@@ -112,6 +131,11 @@ function HandToolMoistureMeter:onActionCallback(actionName, inputValue)
             spec.isHolding = true
             spec.holdStartTime = g_currentMission.time
             print("[MoistureSystem] Measurement started - hold button for 4 seconds...")
+            
+            -- Play start sound
+            if self.isClient and spec.samples ~= nil and spec.samples.start ~= nil then
+                g_soundManager:playSample(spec.samples.start)
+            end
         end
     else
         -- Button released
@@ -119,6 +143,11 @@ function HandToolMoistureMeter:onActionCallback(actionName, inputValue)
             local elapsedTime = g_currentMission.time - spec.holdStartTime
             if elapsedTime < spec.holdDuration then
                 print("[MoistureSystem] Measurement cancelled - button released")
+                
+                -- Play cancel sound
+                if self.isClient and spec.samples ~= nil and spec.samples.cancel ~= nil then
+                    g_soundManager:playSample(spec.samples.cancel)
+                end
             end
             spec.isHolding = false
         end
@@ -135,6 +164,12 @@ function HandToolMoistureMeter:onUpdate(dt)
         if elapsedTime >= spec.holdDuration then
             -- Perform measurement
             spec.isHolding = false
+            
+            -- Play complete sound
+            if self.isClient and spec.samples ~= nil and spec.samples.complete ~= nil then
+                g_soundManager:playSample(spec.samples.complete)
+            end
+            
             self:performMeasurement()
         end
     end

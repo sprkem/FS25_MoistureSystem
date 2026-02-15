@@ -26,6 +26,21 @@
 	<storable>
 		<holderType type="MOISTUREMETER" node="0>"/>
 	</storable>
+	
+	<moistureMeter>
+		<sounds>
+			<start file="$data/sounds/player/flashlight/plyrFlashlightOn_01.wav" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</start>
+			<cancel file="$data/sounds/player/flashlight/plyrFlashlightOn_01.wav" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</cancel>
+			<complete file="$data/sounds/player/flashlight/plyrFlashlightOn_01.wav" linkNode="0>" innerRadius="1.0" outerRadius="2.0" supportsReverb="false">
+				<volume indoor="1.0" outdoor="1.0" />
+			</complete>
+		</sounds>
+	</moistureMeter>
+	
 	<i3dMappings>
 		<i3dMapping id="graphics" node="0>0"/>
 		<i3dMapping id="handNode" node="0>1"/>
