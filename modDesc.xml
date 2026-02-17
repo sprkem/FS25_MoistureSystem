@@ -24,6 +24,8 @@ Beta Changelog:
 0.0.0.8 [WIP]:
 - Ensure ground material rot is affected by the game timescale.
 - Save moisture to 1 dp to reduce save file size growth.
+- Add a setting to let you see HUD field moisture without using the hand tool. Default is off.
+- Add a setting to control how the moisture meter displays readings (blinking alert vs notification). Default is blinking alert.
 
 0.0.0.7:
 - Add a moisture meter hand tool for measuring ground moisture levels in the field. You can no longer see ground moisture in the HUD.

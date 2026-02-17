@@ -185,7 +185,13 @@ function HandToolMoistureMeter:performMeasurement()
     local moisture = g_currentMission.MoistureSystem:getMoistureAtPosition(x, z)
 
     local message = string.format(g_i18n:getText("moistureSystem_groundMoistureReading"), moisture * 100)
-    g_currentMission:showBlinkingWarning(message, 3000)
+    
+    local moistureSystem = g_currentMission.MoistureSystem
+    if moistureSystem.settings.moistureMeterReporting == MoistureSettings.METER_REPORTING_NOTIFICATION then
+        g_currentMission:addIngameNotification(FSBaseMission.INGAME_NOTIFICATION_INFO, message)
+    else
+        g_currentMission:showBlinkingWarning(message, 3000)
+    end
 end
 
 ---Draw UI overlay

@@ -25,6 +25,12 @@
 		<text name="setting_moisture_baleGracePeriod_tooltip" text="Amount of rain exposure before rotting begins. Bales slowly dry when rain stops."/>
 		<text name="setting_moisture_baleExposureDecayRate" text="Bale Drying Rate"/>
 		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="How fast bales dry out after rain stops. Lower = slower drying."/>
+		<text name="setting_moisture_showFieldMoisture" text="Show Field Moisture"/>
+		<text name="setting_moisture_showFieldMoisture_tooltip" text="Display the current moisture level at your position in the field info HUD."/>
+		<text name="setting_moisture_moistureMeterReporting" text="Moisture Meter Reporting"/>
+		<text name="setting_moisture_moistureMeterReporting_tooltip" text="How the moisture meter displays readings."/>
+		<text name="setting_moisture_moistureMeterReporting_blinking" text="Blinking Alert"/>
+		<text name="setting_moisture_moistureMeterReporting_notification" text="Notification"/>
 		
 		<!-- Generic On/Off -->
 		<text name="setting_off" text="OFF"/>

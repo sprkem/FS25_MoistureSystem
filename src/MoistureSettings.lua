@@ -1,6 +1,10 @@
 MoistureSettings = {}
 MoistureSettings.CONTROLS = {}
 
+-- Moisture Meter Reporting Types
+MoistureSettings.METER_REPORTING_BLINKING = 1
+MoistureSettings.METER_REPORTING_NOTIFICATION = 2
+
 MoistureSettings.menuItems = {
     'environment',
     'moistureLossMultiplier',
@@ -9,7 +13,9 @@ MoistureSettings.menuItems = {
     'baleRotEnabled',
     'baleRotRate',
     'baleGracePeriod',
-    'baleExposureDecayRate'
+    'baleExposureDecayRate',
+    'showFieldMoisture',
+    'moistureMeterReporting'
 }
 
 MoistureSettings.multiplayerPermissions = {
@@ -91,6 +97,28 @@ MoistureSettings.SETTINGS.baleExposureDecayRate = {
     ['permission'] = 'moistureSettings',
     ['values'] = { 0.5, 0.75, 1.0, 1.5, 2.0 }, -- decay rate multipliers
     ['strings'] = { "80min", "53min", "40min", "27min", "20min" } -- time to dry 15min exposure
+}
+
+MoistureSettings.SETTINGS.showFieldMoisture = {
+    ['default'] = 1, -- Disabled by default
+    ['serverOnly'] = false,
+    ['permission'] = 'moistureSettings',
+    ['values'] = { false, true },
+    ['strings'] = {
+        g_i18n:getText("setting_off"),
+        g_i18n:getText("setting_on")
+    }
+}
+
+MoistureSettings.SETTINGS.moistureMeterReporting = {
+    ['default'] = 1, -- Blinking alert by default (METER_REPORTING_BLINKING)
+    ['serverOnly'] = false,
+    ['permission'] = 'moistureSettings',
+    ['values'] = { MoistureSettings.METER_REPORTING_BLINKING, MoistureSettings.METER_REPORTING_NOTIFICATION },
+    ['strings'] = {
+        g_i18n:getText("setting_moisture_moistureMeterReporting_blinking"),
+        g_i18n:getText("setting_moisture_moistureMeterReporting_notification")
+    }
 }
 
 function MoistureSettings.getStateIndex(id, value)

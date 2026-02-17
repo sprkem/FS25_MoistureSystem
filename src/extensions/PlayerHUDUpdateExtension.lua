@@ -80,6 +80,15 @@ function MSPlayerHUDExtension:showFieldInfo(x, z)
         string.format("%.0f%% - %.0f%%", clamp.Min, clamp.Max)
     )
 
+    -- Show actual field moisture if setting is enabled
+    if moistureSystem.settings.showFieldMoisture then
+        local fieldMoisture = moistureSystem:getMoistureAtPosition(x, z)
+        box:addLine(
+            g_i18n:getText("moistureSystem_fieldInfo"),
+            string.format("%.1f%%", fieldMoisture * 100)
+        )
+    end
+
     box:showNextFrame()
 end
 

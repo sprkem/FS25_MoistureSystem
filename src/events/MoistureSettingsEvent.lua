@@ -14,6 +14,12 @@ function MoistureSettingsEvent.new()
     self.moistureLossMultiplier = g_currentMission.MoistureSystem.settings.moistureLossMultiplier
     self.moistureGainMultiplier = g_currentMission.MoistureSystem.settings.moistureGainMultiplier
     self.teddingMoistureReduction = g_currentMission.MoistureSystem.settings.teddingMoistureReduction
+    self.baleRotEnabled = g_currentMission.MoistureSystem.settings.baleRotEnabled
+    self.baleRotRate = g_currentMission.MoistureSystem.settings.baleRotRate
+    self.baleGracePeriod = g_currentMission.MoistureSystem.settings.baleGracePeriod
+    self.baleExposureDecayRate = g_currentMission.MoistureSystem.settings.baleExposureDecayRate
+    self.showFieldMoisture = g_currentMission.MoistureSystem.settings.showFieldMoisture
+    self.moistureMeterReporting = g_currentMission.MoistureSystem.settings.moistureMeterReporting
     return self
 end
 
@@ -22,6 +28,12 @@ function MoistureSettingsEvent:writeStream(streamId, connection)
     streamWriteFloat32(streamId, self.moistureLossMultiplier)
     streamWriteFloat32(streamId, self.moistureGainMultiplier)
     streamWriteFloat32(streamId, self.teddingMoistureReduction)
+    streamWriteBool(streamId, self.baleRotEnabled)
+    streamWriteFloat32(streamId, self.baleRotRate)
+    streamWriteInt32(streamId, self.baleGracePeriod)
+    streamWriteFloat32(streamId, self.baleExposureDecayRate)
+    streamWriteBool(streamId, self.showFieldMoisture)
+    streamWriteInt32(streamId, self.moistureMeterReporting)
 end
 
 function MoistureSettingsEvent:readStream(streamId, connection)
@@ -29,6 +41,12 @@ function MoistureSettingsEvent:readStream(streamId, connection)
     self.moistureLossMultiplier = streamReadFloat32(streamId)
     self.moistureGainMultiplier = streamReadFloat32(streamId)
     self.teddingMoistureReduction = streamReadFloat32(streamId)
+    self.baleRotEnabled = streamReadBool(streamId)
+    self.baleRotRate = streamReadFloat32(streamId)
+    self.baleGracePeriod = streamReadInt32(streamId)
+    self.baleExposureDecayRate = streamReadFloat32(streamId)
+    self.showFieldMoisture = streamReadBool(streamId)
+    self.moistureMeterReporting = streamReadInt32(streamId)
     self:run(connection)
 end
 
@@ -41,6 +59,12 @@ function MoistureSettingsEvent:run(connection)
     g_currentMission.MoistureSystem.settings.moistureLossMultiplier = self.moistureLossMultiplier
     g_currentMission.MoistureSystem.settings.moistureGainMultiplier = self.moistureGainMultiplier
     g_currentMission.MoistureSystem.settings.teddingMoistureReduction = self.teddingMoistureReduction
+    g_currentMission.MoistureSystem.settings.baleRotEnabled = self.baleRotEnabled
+    g_currentMission.MoistureSystem.settings.baleRotRate = self.baleRotRate
+    g_currentMission.MoistureSystem.settings.baleGracePeriod = self.baleGracePeriod
+    g_currentMission.MoistureSystem.settings.baleExposureDecayRate = self.baleExposureDecayRate
+    g_currentMission.MoistureSystem.settings.showFieldMoisture = self.showFieldMoisture
+    g_currentMission.MoistureSystem.settings.moistureMeterReporting = self.moistureMeterReporting
 
     if connection:getIsServer() then
         -- Update UI controls if they exist
