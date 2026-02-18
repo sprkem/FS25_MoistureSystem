@@ -7,6 +7,7 @@ BaleRottingSystem = {}
 local BaleRottingSystem_mt = Class(BaleRottingSystem)
 
 BaleRottingSystem.UPDATE_INTERVAL_MS = 1000 -- Check every 1 second
+BaleRottingSystem.SYNC_INTERVAL_MS = 3000   -- Sync to clients every 3 seconds
 
 -- Bale status constants
 BaleRottingSystem.BALE_STATUS = {
@@ -48,6 +49,9 @@ function BaleRottingSystem.new()
 
     -- Track last update time
     self.timeSinceLastUpdate = 0
+
+    -- Track last sync time (for network updates to clients)
+    self.timeSinceLastSync = 0
 
     return self
 end
@@ -248,6 +252,13 @@ function BaleRottingSystem:update(dt)
     end
 
     self.timeSinceLastUpdate = 0
+
+    -- Sync to clients periodically
+    self.timeSinceLastSync = self.timeSinceLastSync + dt
+    if self.timeSinceLastSync >= self.SYNC_INTERVAL_MS then
+        g_client:getServerConnection():sendEvent(BaleRottingUpdateEvent.new(self.baleRainExposureTimes))
+        self.timeSinceLastSync = 0
+    end
 end
 
 ---

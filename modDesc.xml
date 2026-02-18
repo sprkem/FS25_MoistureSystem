@@ -28,6 +28,7 @@ Beta Changelog:
 - Add a setting to control how the moisture meter displays readings (blinking alert vs notification). Default is blinking alert.
 - Only the top range will show the % in the crop grade menu, to reduce clutter.
 - Made object moisture updates multiplayer compatible.
+- Add bale rotting multiplayer sync event.
 
 0.0.0.7:
 - Add a moisture meter hand tool for measuring ground moisture levels in the field. You can no longer see ground moisture in the HUD.
@@ -105,6 +106,7 @@ Beta Changelog:
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
         <sourceFile filename="src/events/ObjectMoistureUpdateEvent.lua"/>
         <sourceFile filename="src/events/PilePropertyUpdateEvent.lua"/>
+        <sourceFile filename="src/events/BaleRottingUpdateEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
         <sourceFile filename="src/handTools/MoistureMeterTool.lua"/>
         <sourceFile filename="src/main.lua"/>
