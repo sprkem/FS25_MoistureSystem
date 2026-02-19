@@ -27,6 +27,7 @@ Beta Changelog:
 - Add a setting to let you see HUD field moisture without using the hand tool. Default is off.
 - Add a setting to control how the moisture meter displays readings (blinking alert vs notification). Default is blinking alert.
 - Only the top range will show the % in the crop grade menu, to reduce clutter.
+- Ensure pile properties are merged and cleaned when using a windrower.
 - Made object moisture updates multiplayer compatible.
 - Add bale rotting multiplayer sync event.
 - Improve meter positioning in third person.
@@ -95,6 +96,7 @@ Beta Changelog:
         <sourceFile filename="src/extensions/FillVolumeExtension.lua"/>
         <sourceFile filename="src/extensions/MowerExtension.lua"/>
         <sourceFile filename="src/extensions/TedderExtension.lua"/>
+        <sourceFile filename="src/extensions/WindrowerExtension.lua"/>
         <sourceFile filename="src/extensions/SellingStationExtension.lua"/>
         <sourceFile filename="src/extensions/LoadingStationExtension.lua"/>
         <sourceFile filename="src/gui/CropGradeTableRenderer.lua"/>

@@ -9,6 +9,7 @@ GroundPropertyTracker.DRY_THRESHOLD = 0.07      -- 7% moisture converts grass to
 
 GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES = 10
 GroundPropertyTracker.DELAYED_PROCESSING_CYCLES = 2
+GroundPropertyTracker.WINDROWER_PROCESSING_CYCLES = 2
 
 -- Rotting constants
 GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME = 30 * 60 * 1000   -- 30 minutes (ms)
@@ -68,6 +69,14 @@ function GroundPropertyTracker.new()
     -- Track straw rotting accumulators
     -- Key: "gridX_gridZ_fillType", Value: accumulated liters waiting for removal
     self.strawRotAccumulators = {}
+
+    -- Track pending windrower drops with volume-weighted moisture
+    -- Key: getGridKey(gridX, gridZ, fillType), Value: { gridX, gridZ, fillType, volume, moistureSum, cyclesRemaining }
+    self.windrowerPendingDrops = {}
+
+    -- Track cells picked by windrower for cleanup verification
+    -- Key: getGridKey(gridX, gridZ, fillType), Value: cycles remaining
+    self.windrowerPickedCells = {}
 
     return self
 end
@@ -298,6 +307,57 @@ function GroundPropertyTracker:markAreaMowed(sx, sz, wx, wz, hx, hz)
     end
 end
 
+-- Add pending windrower drop with volume-weighted moisture accumulation
+function GroundPropertyTracker:addWindrowerDrop(sx, sz, wx, wz, hx, hz, fillType, volume, moisture)
+    if not self.isServer then return end
+
+    local moistureSystem = g_currentMission.MoistureSystem
+    if not moistureSystem:shouldTrackFillType(fillType) then return end
+
+    local affectedCells, totalOverlapArea = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
+    if #affectedCells == 0 or totalOverlapArea == 0 then return end
+
+    -- Distribute volume across cells based on overlap area
+    for _, cell in ipairs(affectedCells) do
+        local proportion = cell.overlapArea / totalOverlapArea
+        local volumeForCell = volume * proportion
+
+        local key = self:getGridKey(cell.gridX, cell.gridZ, fillType)
+
+        if self.windrowerPendingDrops[key] then
+            -- Accumulate with volume-weighted averaging
+            local pending = self.windrowerPendingDrops[key]
+            pending.volume = pending.volume + volumeForCell
+            pending.moistureSum = pending.moistureSum + (moisture * volumeForCell)
+            -- Reset cycle counter to ensure full delay after last drop
+            pending.cyclesRemaining = GroundPropertyTracker.WINDROWER_PROCESSING_CYCLES
+        else
+            -- Create new pending drop
+            self.windrowerPendingDrops[key] = {
+                gridX = cell.gridX,
+                gridZ = cell.gridZ,
+                fillType = fillType,
+                volume = volumeForCell,
+                moistureSum = moisture * volumeForCell,
+                cyclesRemaining = GroundPropertyTracker.WINDROWER_PROCESSING_CYCLES
+            }
+        end
+    end
+end
+
+-- Mark cells picked up by windrower for deferred cleanup
+function GroundPropertyTracker:markWindrowerPickup(sx, sz, wx, wz, hx, hz, fillType)
+    if not self.isServer then return end
+
+    local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
+
+    for _, cell in ipairs(affectedCells) do
+        local key = self:getGridKey(cell.gridX, cell.gridZ, fillType)
+        -- Mark for cleanup after slight delay
+        self.windrowerPickedCells[key] = GroundPropertyTracker.WINDROWER_PROCESSING_CYCLES + 1
+    end
+end
+
 -- Convert grass to hay in a cell
 function GroundPropertyTracker:convertGrassToHayInCell(gridX, gridZ, grassFillType, hayFillType)
     local checkRadius = GroundPropertyTracker.GRID_SIZE / 2
@@ -431,6 +491,8 @@ function GroundPropertyTracker:updateGrassMoisture(moistureDelta, dt)
 
     local updateDelta = dt * g_currentMission:getEffectiveTimeScale()
     self:updateRainExposureAndProcessGrassRot(updateDelta)
+
+    self:processWindrowerPendingDrops()
 
     self:decrementCooldownsAndBuffers()
 end
@@ -688,6 +750,85 @@ function GroundPropertyTracker:decrementCooldownsAndBuffers()
         if self.teddedGridCellsBuffer[gridKey] <= 0 then
             self.teddedGridCellsBuffer[gridKey] = nil
             self.teddedGridCells[gridKey] = true
+        end
+    end
+end
+
+-- Process pending windrower drops after delay
+function GroundPropertyTracker:processWindrowerPendingDrops()
+    if not self.isServer then return end
+
+    local checkRadius = GroundPropertyTracker.GRID_SIZE / 2
+
+    for key, pending in pairs(self.windrowerPendingDrops) do
+        pending.cyclesRemaining = pending.cyclesRemaining - 1
+
+        if pending.cyclesRemaining <= 0 then
+            -- Calculate volume-weighted average moisture
+            local avgMoisture = pending.moistureSum / pending.volume
+
+            -- Query actual density map volume after delay
+            local existingVolume = DensityMapHeightUtil.getFillLevelAtArea(
+                pending.fillType,
+                pending.gridX - checkRadius, pending.gridZ - checkRadius,
+                pending.gridX + checkRadius, pending.gridZ - checkRadius,
+                pending.gridX - checkRadius, pending.gridZ + checkRadius
+            )
+
+            if existingVolume > 0 then
+                -- Create or update pile with proper moisture
+                local storage = self:getStorageForFillType(pending.fillType)
+                local pile = storage[key]
+
+                if pile then
+                    -- Volume-weighted merge with existing pile
+                    local totalVolume = existingVolume + pending.volume
+                    local existingMoisture = pile.properties.moisture or avgMoisture
+                    local newMoisture = (existingMoisture * existingVolume + avgMoisture * pending.volume) / totalVolume
+
+                    pile.properties.moisture = newMoisture
+
+                    g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
+                        key, pile.properties, pending.fillType, pending.gridX, pending.gridZ
+                    ))
+                else
+                    -- Create new pile
+                    storage[key] = {
+                        gridX = pending.gridX,
+                        gridZ = pending.gridZ,
+                        fillType = pending.fillType,
+                        properties = {
+                            moisture = avgMoisture
+                        }
+                    }
+
+                    g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
+                        key, storage[key].properties, pending.fillType, pending.gridX, pending.gridZ
+                    ))
+                end
+            end
+
+            -- Remove from pending
+            self.windrowerPendingDrops[key] = nil
+        end
+    end
+
+    -- Process picked cells cleanup
+    for key, counter in pairs(self.windrowerPickedCells) do
+        self.windrowerPickedCells[key] = counter - 1
+
+        if self.windrowerPickedCells[key] <= 0 then
+            -- Extract gridX, gridZ, fillType from key
+            local gridX, gridZ, fillType = key:match("([^_]+)_([^_]+)_([^_]+)")
+            gridX = tonumber(gridX)
+            gridZ = tonumber(gridZ)
+            fillType = tonumber(fillType)
+
+            -- Check if pile still has content
+            self:checkPileHasContent(gridX, gridZ, fillType)
+
+            -- Remove from tracking
+            self.windrowerPickedCells[key] = nil
         end
     end
 end
