@@ -31,6 +31,7 @@ Beta Changelog:
 - Made object moisture updates multiplayer compatible.
 - Add bale rotting multiplayer sync event.
 - Improve meter positioning in third person.
+- Rewrote pile saving format to be resilient to fill type indices changing and reduce file size. The previous format should load correctly still.
 
 0.0.0.7:
 - Add a moisture meter hand tool for measuring ground moisture levels in the field. You can no longer see ground moisture in the HUD.

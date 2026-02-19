@@ -1208,89 +1208,99 @@ function GroundPropertyTracker:saveToXMLFile(xmlFile, key)
 
     setXMLInt(xmlFile, key .. "#gridSize", GroundPropertyTracker.GRID_SIZE)
 
-    local i = 0
-    -- Save crop piles (optimized format)
-    for gridKey, pile in pairs(self.gridPiles) do
-        local pileKey = string.format("%s.cropPiles.p(%d)", key, i)
-
-        setXMLInt(xmlFile, pileKey .. "#f", pile.fillType)
-        setXMLInt(xmlFile, pileKey .. "#x", math.floor(pile.gridX))
-        setXMLInt(xmlFile, pileKey .. "#z", math.floor(pile.gridZ))
-
-        -- Save moisture with 1 decimal precision
-        if pile.properties.moisture then
-            local roundedMoisture = math.floor(pile.properties.moisture * 10 + 0.5) / 10
-            setXMLFloat(xmlFile, pileKey .. "#m", roundedMoisture)
-        end
-
-        i = i + 1
+    -- Collect all piles from all storage tables
+    local allPiles = {}
+    for _, pile in pairs(self.gridPiles) do
+        table.insert(allPiles, pile)
+    end
+    for _, pile in pairs(self.grassPiles) do
+        table.insert(allPiles, pile)
+    end
+    for _, pile in pairs(self.hayPiles) do
+        table.insert(allPiles, pile)
+    end
+    for _, pile in pairs(self.strawPiles) do
+        table.insert(allPiles, pile)
     end
 
-    local cropCount = i
-
-    i = 0
-    for gridKey, pile in pairs(self.grassPiles) do
-        local pileKey = string.format("%s.grassPiles.p(%d)", key, i)
-
-        setXMLInt(xmlFile, pileKey .. "#f", pile.fillType)
-        setXMLInt(xmlFile, pileKey .. "#x", math.floor(pile.gridX))
-        setXMLInt(xmlFile, pileKey .. "#z", math.floor(pile.gridZ))
-
-        if pile.properties.moisture then
-            local roundedMoisture = math.floor(pile.properties.moisture * 10 + 0.5) / 10
-            setXMLFloat(xmlFile, pileKey .. "#m", roundedMoisture)
+    -- Group piles by fillType
+    local pilesByFillType = {}
+    for _, pile in ipairs(allPiles) do
+        local fillTypeName = pile.fillTypeName or g_fillTypeManager:getFillTypeNameByIndex(pile.fillType)
+        if not pilesByFillType[fillTypeName] then
+            pilesByFillType[fillTypeName] = {}
         end
-
-        i = i + 1
+        table.insert(pilesByFillType[fillTypeName], pile)
     end
 
-    i = 0
-    for gridKey, pile in pairs(self.hayPiles) do
-        local pileKey = string.format("%s.hayPiles.p(%d)", key, i)
+    -- Save each fillType group
+    local groupIndex = 0
+    for fillTypeName, piles in pairs(pilesByFillType) do
+        local groupKey = string.format("%s.piles(%d)", key, groupIndex)
+        setXMLString(xmlFile, groupKey .. "#type", fillTypeName)
 
-        setXMLInt(xmlFile, pileKey .. "#f", pile.fillType)
-        setXMLInt(xmlFile, pileKey .. "#x", math.floor(pile.gridX))
-        setXMLInt(xmlFile, pileKey .. "#z", math.floor(pile.gridZ))
+        for i, pile in ipairs(piles) do
+            local pileKey = string.format("%s.p(%d)", groupKey, i - 1)
+            
+            -- Combine location into single attribute
+            local location = string.format("%d,%d", math.floor(pile.gridX), math.floor(pile.gridZ))
+            setXMLString(xmlFile, pileKey .. "#l", location)
 
-        -- Save moisture with 1 decimal precision
-        if pile.properties.moisture then
-            local roundedMoisture = math.floor(pile.properties.moisture * 10 + 0.5) / 10
-            setXMLFloat(xmlFile, pileKey .. "#m", roundedMoisture)
+            -- Save moisture with 1 decimal precision
+            if pile.properties.moisture then
+                local roundedMoisture = math.floor(pile.properties.moisture * 10 + 0.5) / 10
+                setXMLString(xmlFile, pileKey .. "#m", string.format("%.1f", roundedMoisture))
+            end
         end
 
-        i = i + 1
-    end
-
-    i = 0
-    for gridKey, pile in pairs(self.strawPiles) do
-        local pileKey = string.format("%s.strawPiles.p(%d)", key, i)
-
-        setXMLInt(xmlFile, pileKey .. "#f", pile.fillType)
-        setXMLInt(xmlFile, pileKey .. "#x", math.floor(pile.gridX))
-        setXMLInt(xmlFile, pileKey .. "#z", math.floor(pile.gridZ))
-
-        -- Save moisture with 1 decimal precision
-        if pile.properties.moisture then
-            local roundedMoisture = math.floor(pile.properties.moisture * 10 + 0.5) / 10
-            setXMLFloat(xmlFile, pileKey .. "#m", roundedMoisture)
-        end
-
-        i = i + 1
+        groupIndex = groupIndex + 1
     end
 end
 
--- Load pile in legacy format
-function GroundPropertyTracker:loadPileLegacyFormat(xmlFile, pileKey)
-    if not hasXMLProperty(xmlFile, pileKey) then
-        return nil
+-- Load piles from legacy format (current format with separate sections)
+-- TODO: Remove this function after players have migrated to new format
+function GroundPropertyTracker:loadFromXMLFileLegacy(xmlFile, key)
+    local sections = {
+        {name = "cropPiles", storage = self.gridPiles},
+        {name = "grassPiles", storage = self.grassPiles},
+        {name = "hayPiles", storage = self.hayPiles},
+        {name = "strawPiles", storage = self.strawPiles}
+    }
+
+    for _, section in ipairs(sections) do
+        local i = 0
+        while true do
+            local pileKey = string.format("%s.%s.p(%d)", key, section.name, i)
+            if not hasXMLProperty(xmlFile, pileKey) then
+                break
+            end
+
+            local fillType = getXMLInt(xmlFile, pileKey .. "#f")
+            local gridX = getXMLInt(xmlFile, pileKey .. "#x")
+            local gridZ = getXMLInt(xmlFile, pileKey .. "#z")
+            local moisture = getXMLFloat(xmlFile, pileKey .. "#m")
+
+            if fillType and gridX and gridZ then
+                local pile = {
+                    fillType = fillType,
+                    fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
+                    gridX = gridX,
+                    gridZ = gridZ,
+                    properties = {}
+                }
+
+                if moisture then
+                    pile.properties.moisture = moisture
+                end
+
+                local gridKey = self:getGridKey(gridX, gridZ, fillType)
+                local storage = self:getStorageForFillType(fillType)
+                storage[gridKey] = pile
+            end
+
+            i = i + 1
+        end
     end
-
-    local fillType = getXMLInt(xmlFile, pileKey .. "#fillType")
-    local gridX = getXMLFloat(xmlFile, pileKey .. "#gridX")
-    local gridZ = getXMLFloat(xmlFile, pileKey .. "#gridZ")
-    local moisture = getXMLFloat(xmlFile, pileKey .. "#moisture")
-
-    return fillType, gridX, gridZ, moisture
 end
 
 -- Load tracked piles from XML
@@ -1299,160 +1309,68 @@ function GroundPropertyTracker:loadFromXMLFile(xmlFile, key)
 
     self.loadedGridSize = getXMLInt(xmlFile, key .. "#gridSize") or 5
 
-    local i = 0
-    local loadedCount = 0
-
-    -- Load crop piles (try new format first, fallback to legacy)
+    -- Try new format first: piles(n) with type attribute
+    local groupIndex = 0
+    local foundNewFormat = false
     while true do
-        local pileKey = string.format("%s.cropPiles.p(%d)", key, i)
-        local fillType, gridX, gridZ, moisture
+        local groupKey = string.format("%s.piles(%d)", key, groupIndex)
+        if not hasXMLProperty(xmlFile, groupKey) then
+            break
+        end
+        foundNewFormat = true
 
-        -- Try new optimized format
-        if hasXMLProperty(xmlFile, pileKey) then
-            fillType = getXMLInt(xmlFile, pileKey .. "#f")
-            gridX = getXMLInt(xmlFile, pileKey .. "#x")
-            gridZ = getXMLInt(xmlFile, pileKey .. "#z")
-            moisture = getXMLFloat(xmlFile, pileKey .. "#m")
-        else
-            -- Try legacy format for backward compatibility
-            local legacyKey = string.format("%s.cropPiles.pile(%d)", key, i)
-            fillType, gridX, gridZ, moisture = self:loadPileLegacyFormat(xmlFile, legacyKey)
-            if fillType == nil then
-                break
+        local fillTypeName = getXMLString(xmlFile, groupKey .. "#type")
+        if fillTypeName then
+            local fillType = g_fillTypeManager:getFillTypeIndexByName(fillTypeName)
+            if fillType then
+                local pileIndex = 0
+                while true do
+                    local pileKey = string.format("%s.p(%d)", groupKey, pileIndex)
+                    if not hasXMLProperty(xmlFile, pileKey) then
+                        break
+                    end
+
+                    -- Parse combined location
+                    local location = getXMLString(xmlFile, pileKey .. "#l")
+                    local moisture = getXMLFloat(xmlFile, pileKey .. "#m")
+
+                    if location then
+                        local gridX, gridZ = location:match("([^,]+),([^,]+)")
+                        gridX = tonumber(gridX)
+                        gridZ = tonumber(gridZ)
+
+                        if gridX and gridZ then
+                            local pile = {
+                                fillType = fillType,
+                                fillTypeName = fillTypeName,
+                                gridX = gridX,
+                                gridZ = gridZ,
+                                properties = {}
+                            }
+
+                            if moisture then
+                                pile.properties.moisture = moisture
+                            end
+
+                            local gridKey = self:getGridKey(gridX, gridZ, fillType)
+                            local storage = self:getStorageForFillType(fillType)
+                            storage[gridKey] = pile
+                        end
+                    end
+
+                    pileIndex = pileIndex + 1
+                end
             end
         end
 
-        local pile = {
-            fillType = fillType,
-            fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
-            gridX = gridX,
-            gridZ = gridZ,
-            properties = {}
-        }
-
-        if moisture then
-            pile.properties.moisture = moisture
-        end
-
-        local key = self:getGridKey(gridX, gridZ, fillType)
-        local storage = self:getStorageForFillType(fillType)
-        if storage[key] then
-            storage[key] = nil
-        end
-
-        -- Try new optimized format
-        if hasXMLProperty(xmlFile, pileKey) then
-            fillType = getXMLInt(xmlFile, pileKey .. "#f")
-            gridX = getXMLInt(xmlFile, pileKey .. "#x")
-            gridZ = getXMLInt(xmlFile, pileKey .. "#z")
-            moisture = getXMLFloat(xmlFile, pileKey .. "#m")
-        else
-            -- Try legacy format for backward compatibility
-            local legacyKey = string.format("%s.grassPiles.pile(%d)", key, i)
-            fillType, gridX, gridZ, moisture = self:loadPileLegacyFormat(xmlFile, legacyKey)
-            if fillType == nil then
-                break
-            end
-        end
-
-        local pile = {
-            fillType = fillType,
-            fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
-            gridX = gridX,
-            gridZ = gridZ,
-            properties = {}
-        }
-
-        if moisture then
-            pile.properties.moisture = moisture
-        end
-
-        local gridKey = self:getGridKey(gridX, gridZ, fillType)
-        self.grassPiles[gridKey] = pile
-        loadedCount = loadedCount + 1
-
-        i = i + 1
+        groupIndex = groupIndex + 1
     end
 
-    -- Load hay piles (try new format first, fallback to legacy)
-    i = 0
-    loadedCount = 0
-    while true do
-        local pileKey = string.format("%s.hayPiles.p(%d)", key, i)
-        local fillType, gridX, gridZ, moisture
-
-        -- Try new optimized format
-        if hasXMLProperty(xmlFile, pileKey) then
-            fillType = getXMLInt(xmlFile, pileKey .. "#f")
-            gridX = getXMLInt(xmlFile, pileKey .. "#x")
-            gridZ = getXMLInt(xmlFile, pileKey .. "#z")
-            moisture = getXMLFloat(xmlFile, pileKey .. "#m")
-        else
-            -- Try legacy format for backward compatibility
-            local legacyKey = string.format("%s.hayPiles.pile(%d)", key, i)
-            fillType, gridX, gridZ, moisture = self:loadPileLegacyFormat(xmlFile, legacyKey)
-            if fillType == nil then
-                break
-            end
-        end
-
-        local pile = {
-            fillType = fillType,
-            fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
-            gridX = gridX,
-            gridZ = gridZ,
-            properties = {}
-        }
-
-        if moisture then
-            pile.properties.moisture = moisture
-        end
-
-        local gridKey = self:getGridKey(gridX, gridZ, fillType)
-        self.hayPiles[gridKey] = pile
-        loadedCount = loadedCount + 1
-
-        i = i + 1
+    -- If new format was found, we're done
+    if foundNewFormat then
+        return
     end
 
-    -- Load straw piles (try new format first, fallback to legacy)
-    i = 0
-    loadedCount = 0
-    while true do
-        local pileKey = string.format("%s.strawPiles.p(%d)", key, i)
-        local fillType, gridX, gridZ, moisture
-
-        -- Try new optimized format
-        if hasXMLProperty(xmlFile, pileKey) then
-            fillType = getXMLInt(xmlFile, pileKey .. "#f")
-            gridX = getXMLInt(xmlFile, pileKey .. "#x")
-            gridZ = getXMLInt(xmlFile, pileKey .. "#z")
-            moisture = getXMLFloat(xmlFile, pileKey .. "#m")
-        else
-            -- Try legacy format for backward compatibility
-            local legacyKey = string.format("%s.strawPiles.pile(%d)", key, i)
-            fillType, gridX, gridZ, moisture = self:loadPileLegacyFormat(xmlFile, legacyKey)
-            if fillType == nil then
-                break
-            end
-        end
-
-        local pile = {
-            fillType = fillType,
-            fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
-            gridX = gridX,
-            gridZ = gridZ,
-            properties = {}
-        }
-
-        if moisture then
-            pile.properties.moisture = moisture
-        end
-
-        local gridKey = self:getGridKey(gridX, gridZ, fillType)
-        self.strawPiles[gridKey] = pile
-        loadedCount = loadedCount + 1
-
-        i = i + 1
-    end
+    -- Fall back to legacy format (TODO: Remove after migration period)
+    self:loadFromXMLFileLegacy(xmlFile, key)
 end
