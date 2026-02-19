@@ -6,8 +6,8 @@
 BaleRottingSystem = {}
 local BaleRottingSystem_mt = Class(BaleRottingSystem)
 
-BaleRottingSystem.UPDATE_INTERVAL_MS = 1000 -- Check every 1 second
-BaleRottingSystem.SYNC_INTERVAL_MS = 3000   -- Sync to clients every 3 seconds
+BaleRottingSystem.UPDATE_INTERVAL_MS = 1000
+BaleRottingSystem.SYNC_INTERVAL_MS = 3000
 
 -- Bale status constants
 BaleRottingSystem.BALE_STATUS = {
@@ -80,9 +80,6 @@ function BaleRottingSystem:updateBaleExposure(uniqueId, timescaledDt, isExposedT
         -- Only allow drying if NOT rotting yet (exposure < slow rot threshold)
         -- Once rotting starts, bale cannot dry back
         if currentExposure < self.SLOW_ROT_THRESHOLD then
-            -- Decay exposure when dry (slower than accumulation)
-            -- 20 minutes of exposure takes ~53 minutes to fully decay
-            -- Apply sunshine bonus (up to 25% faster drying)
             local decayRate = self.DECAY_RATE * (g_currentMission.MoistureSystem.settings.baleExposureDecayRate or 1.0)
             currentExposure = math.max(currentExposure - (timescaledDt * decayRate * sunDryingMultiplier), 0)
         end
@@ -309,12 +306,10 @@ function BaleRottingSystem:isBaleRottable(item)
         return false
     end
 
-    -- Must have valid data
     if item.fillLevel == nil or item.nodeId == 0 then
         return false
     end
 
-    -- Must be unwrapped
     if item.wrappingState ~= 0 then
         return false
     end
@@ -426,7 +421,6 @@ function BaleRottingSystem:loadFromXMLFile(xmlFile, key)
     end
 end
 
--- Hook into Bale deletion
 Bale.delete = Utils.prependedFunction(Bale.delete, function(self)
     if g_currentMission.baleRottingSystem then
         g_currentMission.baleRottingSystem:onBaleDeleted(self)

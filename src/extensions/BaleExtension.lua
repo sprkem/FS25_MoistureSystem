@@ -127,9 +127,7 @@ function MSBaleExtension:getIsRotting()
     -- Consider bale as "rotting" if it's in any rotting state
     local isRotting = baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_SLOWLY or
         baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING or
-        baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY or
-        -- Also consider "getting wet" state to ensure tracking continues
-        baleData.status == BaleRottingSystem.BALE_STATUS.GETTING_WET
+        baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY
 
     return isRotting
 end
@@ -187,5 +185,4 @@ Bale.applyBaleAttributes = Utils.overwrittenFunction(
     MSBaleExtension.applyBaleAttributes
 )
 
--- Add getIsRotting as a method
 Bale.getIsRotting = MSBaleExtension.getIsRotting

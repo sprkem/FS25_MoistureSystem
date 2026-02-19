@@ -57,11 +57,7 @@ function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitInd
     end
 
     local tracker = g_currentMission.groundPropertyTracker
-    if moistureSystem == nil or tracker == nil then
-        return
-    end
 
-    -- Get vehicle uniqueId
     local uniqueId = self.uniqueId
     if uniqueId == nil then
         return
@@ -97,7 +93,6 @@ function MSFillVolumeExtension:onFillUnitFillLevelChanged(superFunc, fillUnitInd
         moistureSystem:setObjectMoisture(uniqueId, fillType, averageMoisture)
     end
 
-    -- Remove pile from tracking if nothing remains
     tracker:checkPileHasContent(x, z, fillType)
 end
 

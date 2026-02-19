@@ -12,10 +12,8 @@ MSCutterExtension = {}
 -- @param hasProcessed: Whether work areas were processed
 ---
 function MSCutterExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
-    -- Call original function first
     local result = superFunc(self, dt, hasProcessed)
 
-    -- Only track on server
     if not self.isServer then
         return result
     end
@@ -82,9 +80,6 @@ end
 ---
 function MSCutterExtension.getMoistureAtWorkArea(cutter, spec)
     local moistureSystem = g_currentMission.MoistureSystem
-    if moistureSystem == nil then
-        return nil
-    end
 
     -- Check if picking up windrows
     if spec.useWindrow then
@@ -223,15 +218,12 @@ function MSCutterExtension.resetCombineMoisture(combineVehicle, fillType)
     end
 
     if fillType == nil then
-        -- Clear all fillTypes for this vehicle
         moistureSystem.objectMoisture[uniqueId] = nil
     else
-        -- Clear specific fillType
         moistureSystem:setObjectMoisture(uniqueId, fillType, nil)
     end
 end
 
--- Hook into Cutter specialization
 Cutter.onEndWorkAreaProcessing = Utils.overwrittenFunction(
     Cutter.onEndWorkAreaProcessing,
     MSCutterExtension.onEndWorkAreaProcessing

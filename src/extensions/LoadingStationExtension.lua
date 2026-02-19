@@ -23,17 +23,16 @@ function MSLoadingStationExtension:addFillLevelToFillableObject(superFunc, filla
     end
 
     local moistureSystem = g_currentMission.MoistureSystem
-    if moistureSystem == nil or not moistureSystem:shouldTrackFillType(fillTypeIndex) then
+    if not moistureSystem:shouldTrackFillType(fillTypeIndex) then
         return superFunc(self, fillableObject, fillUnitIndex, fillTypeIndex, fillDelta, fillInfo, toolType)
     end
 
-    -- Get target vehicle uniqueId
     local targetUniqueId = fillableObject.uniqueId
     if targetUniqueId == nil then
         return superFunc(self, fillableObject, fillUnitIndex, fillTypeIndex, fillDelta, fillInfo, toolType)
     end
 
-    -- Get target's current fill level and moisture BEFORE loading
+    -- Get target's current fill level and moisture before loading
     local targetCurrentLiters = 0
     if fillableObject.getFillUnitFillLevel ~= nil then
         targetCurrentLiters = fillableObject:getFillUnitFillLevel(fillUnitIndex)
@@ -78,7 +77,6 @@ function MSLoadingStationExtension:addFillLevelToFillableObject(superFunc, filla
     return actualFilledAmount
 end
 
--- Hook into LoadingStation
 LoadingStation.addFillLevelToFillableObject = Utils.overwrittenFunction(
     LoadingStation.addFillLevelToFillableObject,
     MSLoadingStationExtension.addFillLevelToFillableObject

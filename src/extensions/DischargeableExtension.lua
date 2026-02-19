@@ -22,11 +22,7 @@ function MSDischargeableExtension:dischargeToGround(superFunc, dischargeNode, em
         return dischargedLiters, minDropReached, hasMinDropFillLevel
     end
 
-    -- Get the moisture system
     local tracker = g_currentMission.groundPropertyTracker
-    if tracker == nil then
-        return dischargedLiters, minDropReached, hasMinDropFillLevel
-    end
 
     -- Get filltype
     local fillType = self:getDischargeFillType(dischargeNode)
@@ -152,7 +148,7 @@ function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, em
     local fillType = self:getDischargeFillType(dischargeNode)
     local farmId = self.ownerFarmId
 
-    -- Get target fill level BEFORE discharge
+    -- Get target fill level before discharge
     local targetCurrentLiters = 0
     if targetObject ~= nil and targetObject.getFillUnitFillLevel ~= nil then
         targetCurrentLiters = targetObject:getFillUnitFillLevel(targetFillUnitIndex)
@@ -190,7 +186,6 @@ function MSDischargeableExtension:dischargeToObject(superFunc, dischargeNode, em
         return dischargedLiters
     end
 
-    -- Get source moisture (from this vehicle)
     local sourceMoisture = moistureSystem:getObjectMoisture(uniqueId, fillType)
 
     -- If no moisture data, use field moisture at discharge position

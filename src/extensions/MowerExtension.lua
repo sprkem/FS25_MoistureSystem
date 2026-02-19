@@ -17,7 +17,6 @@ function MSMowerExtension:processDropArea(superFunc, dropArea, dt)
     superFunc(self, dropArea, dt)
     local dropped = toDrop - dropArea.litersToDrop
 
-    -- Only track on server and if grass was dropped
     if not self.isServer or dropped <= 0 then
         return
     end

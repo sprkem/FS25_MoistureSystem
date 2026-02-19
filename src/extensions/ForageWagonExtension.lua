@@ -39,7 +39,7 @@ function MSForageWagonExtension:onEndWorkAreaProcessing(superFunc, dt, hasProces
     local moistureSystem = g_currentMission.MoistureSystem
     local tracker = g_currentMission.groundPropertyTracker
     if not moistureSystem:shouldTrackFillType(fillType) then
-        return
+        return result
     end
 
     -- Get work area to determine pickup location
@@ -131,7 +131,6 @@ function MSForageWagonExtension:onFillUnitFillLevelChanged(superFunc, fillUnitIn
     end
 end
 
--- Hook into ForageWagon specialization
 ForageWagon.onEndWorkAreaProcessing = Utils.overwrittenFunction(
     ForageWagon.onEndWorkAreaProcessing,
     MSForageWagonExtension.onEndWorkAreaProcessing
