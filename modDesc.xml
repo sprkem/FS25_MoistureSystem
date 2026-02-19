@@ -29,6 +29,7 @@ Beta Changelog:
 - Only the top range will show the % in the crop grade menu, to reduce clutter.
 - Made object moisture updates multiplayer compatible.
 - Add bale rotting multiplayer sync event.
+- Improve meter positioning in third person.
 
 0.0.0.7:
 - Add a moisture meter hand tool for measuring ground moisture levels in the field. You can no longer see ground moisture in the HUD.
