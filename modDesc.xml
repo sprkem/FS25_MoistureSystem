@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="105">
     <author>Ozz</author>
-    <version>0.0.0.8</version>
+    <version>0.0.0.9</version>
     <iconFilename>icon_MoistureSystem.dds</iconFilename>
     <title>
         <en>Moisture System</en>
@@ -20,6 +20,12 @@ Features include terrain-based moisture variation, grass tedding and drying mech
 Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Beta Changelog:
+
+0.0.0.9 [WIP]:
+- Multiplayer initial client stat event added
+- Validate ground piles on save to ensure we don't save empty cells
+- Fix active cleanup of piles during baling and improved moisture aggregation
+- Improve stored bale save logic to only track bales with moisture/rot data
 
 0.0.0.8:
 - Ensure ground material rot is affected by the game timescale. This replaces previous rates so please give feedback!
@@ -106,6 +112,7 @@ Beta Changelog:
         <sourceFile filename="src/gui/MoistureGui.lua"/>
         <sourceFile filename="src/GroundPropertyTracker.lua"/>
         <sourceFile filename="src/BaleRottingSystem.lua"/>
+        <sourceFile filename="src/events/InitialClientStateEvent.lua"/>
         <sourceFile filename="src/events/MoistureSettingsEvent.lua"/>
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
         <sourceFile filename="src/events/ObjectMoistureUpdateEvent.lua"/>

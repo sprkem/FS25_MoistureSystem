@@ -421,6 +421,54 @@ function BaleRottingSystem:loadFromXMLFile(xmlFile, key)
     end
 end
 
+---
+-- Write bale rotting state for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
+---
+function BaleRottingSystem:writeInitialClientState(streamId, connection)
+    -- Count bales that exist in itemSystem
+    local baleCount = 0
+    for uniqueId, _ in pairs(self.baleRainExposureTimes) do
+        if g_currentMission.itemSystem.itemByUniqueId[uniqueId] then
+            baleCount = baleCount + 1
+        end
+    end
+
+    streamWriteInt32(streamId, baleCount)
+    
+    for uniqueId, baleData in pairs(self.baleRainExposureTimes) do
+        if g_currentMission.itemSystem.itemByUniqueId[uniqueId] then
+            streamWriteString(streamId, uniqueId)
+            streamWriteInt32(streamId, math.floor(baleData.exposure))
+            streamWriteInt32(streamId, math.floor(baleData.peakExposure))
+        end
+    end
+end
+
+---
+-- Read bale rotting state for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
+---
+function BaleRottingSystem:readInitialClientState(streamId, connection)
+    self.baleRainExposureTimes = {}
+    
+    local baleCount = streamReadInt32(streamId)
+    
+    for i = 1, baleCount do
+        local uniqueId = streamReadString(streamId)
+        local exposureTime = streamReadInt32(streamId)
+        local peakExposure = streamReadInt32(streamId)
+        
+        self.baleRainExposureTimes[uniqueId] = {
+            exposure = exposureTime,
+            peakExposure = peakExposure,
+            status = self.BALE_STATUS.DRYING -- Status will be computed on next update
+        }
+    end
+end
+
 Bale.delete = Utils.prependedFunction(Bale.delete, function(self)
     if g_currentMission.baleRottingSystem then
         g_currentMission.baleRottingSystem:onBaleDeleted(self)

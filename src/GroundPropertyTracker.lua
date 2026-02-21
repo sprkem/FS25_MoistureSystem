@@ -1208,24 +1208,32 @@ function GroundPropertyTracker:saveToXMLFile(xmlFile, key)
 
     setXMLInt(xmlFile, key .. "#gridSize", GroundPropertyTracker.GRID_SIZE)
 
-    -- Collect all piles from all storage tables
-    local allPiles = {}
+    -- First pass: collect all piles without modifying tables
+    local candidatePiles = {}
     for _, pile in pairs(self.gridPiles) do
-        table.insert(allPiles, pile)
+        table.insert(candidatePiles, pile)
     end
     for _, pile in pairs(self.grassPiles) do
-        table.insert(allPiles, pile)
+        table.insert(candidatePiles, pile)
     end
     for _, pile in pairs(self.hayPiles) do
-        table.insert(allPiles, pile)
+        table.insert(candidatePiles, pile)
     end
     for _, pile in pairs(self.strawPiles) do
-        table.insert(allPiles, pile)
+        table.insert(candidatePiles, pile)
+    end
+
+    -- Second pass: verify content and build final list (safe to modify source tables now)
+    local validatedPiles = {}
+    for _, pile in ipairs(candidatePiles) do
+        if self:checkPileHasContent(pile.gridX, pile.gridZ, pile.fillType) then
+            table.insert(validatedPiles, pile)
+        end
     end
 
     -- Group piles by fillType
     local pilesByFillType = {}
-    for _, pile in ipairs(allPiles) do
+    for _, pile in ipairs(validatedPiles) do
         local fillTypeName = pile.fillTypeName or g_fillTypeManager:getFillTypeNameByIndex(pile.fillType)
         if not pilesByFillType[fillTypeName] then
             pilesByFillType[fillTypeName] = {}
@@ -1373,4 +1381,74 @@ function GroundPropertyTracker:loadFromXMLFile(xmlFile, key)
 
     -- Fall back to legacy format (TODO: Remove after migration period)
     self:loadFromXMLFileLegacy(xmlFile, key)
+end
+
+---
+-- Write ground pile data for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
+---
+function GroundPropertyTracker:writeInitialClientState(streamId, connection)
+    -- Helper function to write piles from a storage table
+    local function writePiles(storage)
+        local count = 0
+        for _ in pairs(storage) do
+            count = count + 1
+        end
+        streamWriteInt32(streamId, count)
+        
+        for _, pile in pairs(storage) do
+            streamWriteInt32(streamId, pile.fillType)
+            streamWriteFloat32(streamId, pile.gridX)
+            streamWriteFloat32(streamId, pile.gridZ)
+            streamWriteFloat32(streamId, pile.properties.moisture or 0)
+        end
+    end
+
+    -- Write all storage types in order
+    writePiles(self.gridPiles)
+    writePiles(self.grassPiles)
+    writePiles(self.hayPiles)
+    writePiles(self.strawPiles)
+end
+
+---
+-- Read ground pile data for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
+---
+function GroundPropertyTracker:readInitialClientState(streamId, connection)
+    -- Helper function to read piles into a storage table
+    local function readPiles(storage)
+        local count = streamReadInt32(streamId)
+        
+        for i = 1, count do
+            local fillType = streamReadInt32(streamId)
+            local gridX = streamReadFloat32(streamId)
+            local gridZ = streamReadFloat32(streamId)
+            local moisture = streamReadFloat32(streamId)
+            
+            local pile = {
+                fillType = fillType,
+                fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
+                gridX = gridX,
+                gridZ = gridZ,
+                properties = { moisture = moisture }
+            }
+            
+            local gridKey = self:getGridKey(gridX, gridZ, fillType)
+            storage[gridKey] = pile
+        end
+    end
+
+    -- Clear and read all storage types in order
+    self.gridPiles = {}
+    self.grassPiles = {}
+    self.hayPiles = {}
+    self.strawPiles = {}
+    
+    readPiles(self.gridPiles)
+    readPiles(self.grassPiles)
+    readPiles(self.hayPiles)
+    readPiles(self.strawPiles)
 end

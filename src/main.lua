@@ -697,6 +697,7 @@ function MoistureSystem:saveToXmlFile()
     end
 
     -- Save storage bale uniqueId mappings (can't save in storage XML due to schema restrictions)
+    -- Only save bales that have rotting data
     local storageIndex = 0
     for _, placeable in pairs(g_currentMission.placeableSystem.placeables) do
         if placeable.spec_objectStorage then
@@ -710,7 +711,8 @@ function MoistureSystem:saveToXmlFile()
                         baleUniqueId = abstractObject.baleAttributes.uniqueId
                     end
                     
-                    if baleUniqueId then
+                    -- Only save if bale has rotting data
+                    if baleUniqueId and g_currentMission.baleRottingSystem.baleRainExposureTimes[baleUniqueId] then
                         local storageKey = string.format("%s.storageBales.bale(%d)", MoistureSystem.SaveKey, storageIndex)
                         setXMLString(xmlFile, storageKey .. "#placeableId", placeable.uniqueId)
                         setXMLInt(xmlFile, storageKey .. "#objectIndex", objectIndex - 1)  -- 0-based for consistency
@@ -746,12 +748,96 @@ function MoistureSystem:saveToXmlFile()
     delete(xmlFile)
 end
 
+function MoistureSystem:sendInitialClientState(connection, user, farm)
+    connection:sendEvent(MSInitialClientStateEvent.new())
+end
+
 ---
--- Action callback to open moisture GUI
+-- Write MoistureSystem state for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
 ---
+function MoistureSystem:writeInitialClientState(streamId, connection)
+    -- Write current moisture level
+    streamWriteFloat32(streamId, self.currentMoisturePercent)
+
+    -- Write settings
+    streamWriteInt32(streamId, self.settings.environment)
+    streamWriteFloat32(streamId, self.settings.moistureLossMultiplier)
+    streamWriteFloat32(streamId, self.settings.moistureGainMultiplier)
+    streamWriteFloat32(streamId, self.settings.teddingMoistureReduction)
+    streamWriteBool(streamId, self.settings.baleRotEnabled)
+    streamWriteFloat32(streamId, self.settings.baleRotRate)
+    streamWriteInt32(streamId, self.settings.baleGracePeriod)
+    streamWriteFloat32(streamId, self.settings.baleExposureDecayRate)
+
+    -- Write object moisture data
+    local objectCount = 0
+    for _ in pairs(self.objectMoisture) do
+        objectCount = objectCount + 1
+    end
+    streamWriteInt32(streamId, objectCount)
+
+    for uniqueId, fillTypes in pairs(self.objectMoisture) do
+        streamWriteString(streamId, uniqueId)
+        
+        local fillTypeCount = 0
+        for _ in pairs(fillTypes) do
+            fillTypeCount = fillTypeCount + 1
+        end
+        streamWriteInt32(streamId, fillTypeCount)
+
+        for fillTypeName, moisture in pairs(fillTypes) do
+            streamWriteString(streamId, fillTypeName)
+            streamWriteFloat32(streamId, moisture)
+        end
+    end
+end
+
+---
+-- Read MoistureSystem state for initial client sync
+-- @param streamId: Network stream ID
+-- @param connection: Network connection
+---
+function MoistureSystem:readInitialClientState(streamId, connection)
+    -- Read current moisture level
+    self.currentMoisturePercent = streamReadFloat32(streamId)
+
+    -- Read settings
+    self.settings.environment = streamReadInt32(streamId)
+    self.settings.moistureLossMultiplier = streamReadFloat32(streamId)
+    self.settings.moistureGainMultiplier = streamReadFloat32(streamId)
+    self.settings.teddingMoistureReduction = streamReadFloat32(streamId)
+    self.settings.baleRotEnabled = streamReadBool(streamId)
+    self.settings.baleRotRate = streamReadFloat32(streamId)
+    self.settings.baleGracePeriod = streamReadInt32(streamId)
+    self.settings.baleExposureDecayRate = streamReadFloat32(streamId)
+
+    -- Read object moisture data
+    self.objectMoisture = {}
+    local objectCount = streamReadInt32(streamId)
+    
+    for i = 1, objectCount do
+        local uniqueId = streamReadString(streamId)
+        local fillTypeCount = streamReadInt32(streamId)
+        
+        self.objectMoisture[uniqueId] = {}
+        
+        for j = 1, fillTypeCount do
+            local fillTypeName = streamReadString(streamId)
+            local moisture = streamReadFloat32(streamId)
+            self.objectMoisture[uniqueId][fillTypeName] = moisture
+        end
+    end
+
+    -- Clear moisture cache since we just got new data
+    self.moistureCache = {}
+    self.moistureCacheOrder = {}
+end
+
 function MoistureSystem.ShowMoistureGUI()
     if g_gui.currentGui == nil then
-        g_currentMission.MoistureSystem:loadGUI() -- Useful when developing UI
+        -- g_currentMission.MoistureSystem:loadGUI() -- Useful when developing UI
         g_gui:showGui("MoistureGui")
     end
 end
@@ -764,6 +850,9 @@ local function addPlayerActionEvents(self, superFunc, ...)
     g_inputBinding:setActionEventTextVisibility(id, false)
 end
 
+
+FSBaseMission.sendInitialClientState = Utils.appendedFunction(FSBaseMission.sendInitialClientState,
+    MoistureSystem.sendInitialClientState)
 FSBaseMission.saveSavegame = Utils.appendedFunction(FSBaseMission.saveSavegame, MoistureSystem.saveToXmlFile)
 FSBaseMission.onStartMission = Utils.appendedFunction(FSBaseMission.onStartMission, MoistureSystem.onStartMission)
 PlayerInputComponent.registerGlobalPlayerActionEvents = Utils.overwrittenFunction(

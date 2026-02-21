@@ -64,22 +64,44 @@ function MSBalerExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
         return
     end
 
-    -- Calculate center of work area
+    -- Get work area coordinates
     local sx, _, sz = getWorldTranslation(workArea.start)
     local wx, _, wz = getWorldTranslation(workArea.width)
     local hx, _, hz = getWorldTranslation(workArea.height)
 
-    local centerX = (sx + wx + hx) / 3
-    local centerZ = (sz + wz + hz) / 3
-
-    -- Try to get moisture from tracked pile
-    local properties = tracker:getPilePropertiesAtPosition(centerX, centerZ, fillType)
+    -- Get all affected cells in work area
+    local affectedCells = tracker:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
+    
+    -- Try to get moisture from any tracked pile in affected cells
     local moisture = nil
-
-    if properties and properties.moisture then
-        moisture = properties.moisture
+    local totalVolume = 0
+    local weightedMoistureSum = 0
+    
+    for _, cell in ipairs(affectedCells) do
+        local properties = tracker:getPilePropertiesAtPosition(cell.gridX, cell.gridZ, fillType)
+        if properties and properties.moisture then
+            -- Get actual volume in this cell
+            local checkRadius = GroundPropertyTracker.GRID_SIZE / 2
+            local cellVolume = DensityMapHeightUtil.getFillLevelAtArea(
+                fillType,
+                cell.gridX - checkRadius, cell.gridZ - checkRadius,
+                cell.gridX + checkRadius, cell.gridZ - checkRadius,
+                cell.gridX - checkRadius, cell.gridZ + checkRadius
+            )
+            if cellVolume > 0 then
+                weightedMoistureSum = weightedMoistureSum + (properties.moisture * cellVolume)
+                totalVolume = totalVolume + cellVolume
+            end
+        end
+    end
+    
+    if totalVolume > 0 then
+        -- Use volume-weighted average from tracked cells
+        moisture = weightedMoistureSum / totalVolume
     else
-        -- No pile tracked, use field moisture as fallback
+        -- No pile tracked in any cell, use field moisture as fallback
+        local centerX = (sx + wx + hx) / 3
+        local centerZ = (sz + wz + hz) / 3
         moisture = moistureSystem:getMoistureAtPosition(centerX, centerZ)
     end
 
@@ -114,8 +136,10 @@ function MSBalerExtension:onEndWorkAreaProcessing(superFunc, dt, hasProcessed)
         moistureSystem:setObjectMoisture(self.uniqueId, fillType, averageMoisture)
     end
 
-    -- Cleanup pile tracking data
-    tracker:checkPileHasContent(centerX, centerZ, fillType)
+    -- Cleanup pile tracking data for all cells in work area (reuse affectedCells from above)
+    for _, cell in ipairs(affectedCells) do
+        tracker:checkPileHasContent(cell.gridX, cell.gridZ, fillType)
+    end
 end
 
 ---
