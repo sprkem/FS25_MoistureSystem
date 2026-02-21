@@ -34,7 +34,7 @@ PlayerInputComponent.update = Utils.appendedFunction(PlayerInputComponent.update
 function MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
     local moistureText = string.format("%.1f%%", moisture * 100)
     local isGrass = fillTypeIndex == FillType.GRASS or fillTypeIndex == FillType.GRASS_WINDROW
-    
+
     if not isGrass then
         local grade, multiplier = CropValueMap.getGrade(fillTypeIndex, moisture)
         if grade ~= nil then
@@ -42,7 +42,7 @@ function MSPlayerHUDExtension.formatMoistureWithGrade(fillTypeIndex, moisture)
             moistureText = moistureText .. " (Grade " .. gradeNames[grade] .. ")"
         end
     end
-    
+
     return moistureText
 end
 
@@ -269,10 +269,6 @@ function MSPlayerHUDExtension:showVehicleInfo(vehicle)
     end
 
     local moistureSystem = g_currentMission.MoistureSystem
-    if moistureSystem == nil then
-        return
-    end
-
     local objectData = moistureSystem.objectMoisture[vehicle.uniqueId]
     if objectData == nil then
         return
@@ -284,7 +280,7 @@ function MSPlayerHUDExtension:showVehicleInfo(vehicle)
     end
 
     -- Add moisture data for each fillType stored in this object
-    for fillTypeName, moisture in pairs(objectData) do
+    for fillTypeName, moisture in pairs(objectData) do        
         local fillTypeIndex = g_fillTypeManager:getFillTypeIndexByName(fillTypeName)
         if fillTypeIndex then
             local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
@@ -363,9 +359,9 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
         local baleData = baleRottingSystem.baleRainExposureTimes[bale.uniqueId]
         if baleData ~= nil and baleData.exposure > 0 then
             -- Only show exposure % if not rotting yet
-            local isRotting = (baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_SLOWLY or 
-                             baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING or 
-                             baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY)
+            local isRotting = (baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_SLOWLY or
+                baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING or
+                baleData.status == BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY)
             if not isRotting then
                 local exposurePercent = (baleData.exposure / baleRottingSystem.SLOW_ROT_THRESHOLD) * 100
                 box:addLine(
@@ -373,7 +369,7 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
                     string.format("%.0f%%", exposurePercent)
                 )
             end
-            
+
             -- Show status (pre-computed in update loop)
             local statusTextMap = {
                 [BaleRottingSystem.BALE_STATUS.GETTING_WET] = "moistureSystem_baleGettingWet",
@@ -382,7 +378,7 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
                 [BaleRottingSystem.BALE_STATUS.ROTTING_QUICKLY] = "moistureSystem_baleRottingQuickly",
                 [BaleRottingSystem.BALE_STATUS.DRYING] = "moistureSystem_baleDrying"
             }
-            
+
             if baleData.status and statusTextMap[baleData.status] then
                 box:addLine(
                     g_i18n:getText("moistureSystem_baleStatus"),

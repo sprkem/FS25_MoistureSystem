@@ -17,7 +17,8 @@ function ObjectMoistureUpdateEvent.new(uniqueId, fillTypeName, moisture)
 end
 
 function ObjectMoistureUpdateEvent:writeStream(streamId, connection)
-    streamWriteString(streamId, self.uniqueId)
+    local object = g_currentMission:getObjectByUniqueId(self.uniqueId)
+    NetworkUtil.writeNodeObject(streamId, object)
     streamWriteString(streamId, self.fillTypeName)
 
     -- Write nil flag first
@@ -29,7 +30,9 @@ function ObjectMoistureUpdateEvent:writeStream(streamId, connection)
 end
 
 function ObjectMoistureUpdateEvent:readStream(streamId, connection)
-    self.uniqueId = streamReadString(streamId)
+    local object = NetworkUtil.readNodeObject(streamId)
+    self.uniqueId = object.uniqueId
+
     self.fillTypeName = streamReadString(streamId)
 
     local hasMoisture = streamReadBool(streamId)
@@ -45,6 +48,7 @@ end
 function ObjectMoistureUpdateEvent:run(connection)
     if not connection:getIsServer() then
         g_server:broadcastEvent(ObjectMoistureUpdateEvent.new(self.uniqueId, self.fillTypeName, self.moisture))
+        return -- Server already updated locally in setObjectMoisture()
     end
 
     local ms = g_currentMission.MoistureSystem

@@ -30,7 +30,11 @@
 		<text name="setting_moisture_moistureMeterReporting" text="Moisture Meter Reporting"/>
 		<text name="setting_moisture_moistureMeterReporting_tooltip" text="How the moisture meter displays readings."/>
 		<text name="setting_moisture_moistureMeterReporting_blinking" text="Blinking Alert"/>
-		<text name="setting_moisture_moistureMeterReporting_notification" text="Notification"/>	
+		<text name="setting_moisture_moistureMeterReporting_notification" text="Notification"/>
+		
+		<!-- Generic On/Off -->
+		<text name="setting_setting_off" text="OFF"/>
+		<text name="setting_setting_on" text="ON"/>
 		
 		<!-- Multiplayer Permission -->
 		<text name="permission_moisture_moistureSettings" text="Change Moisture Settings"/>

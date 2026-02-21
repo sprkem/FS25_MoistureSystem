@@ -364,6 +364,10 @@ end
 -- @param moisture: The moisture level (0-1 scale) or nil to clear
 ---
 function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
+    if not g_currentMission:getIsServer() then
+        return
+    end
+
     if uniqueId == nil or fillType == nil then
         return
     end
@@ -377,6 +381,16 @@ function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
         return
     end
 
+    -- Update local data first
+    if self.objectMoisture[uniqueId] == nil then
+        self.objectMoisture[uniqueId] = {}
+    end
+    self.objectMoisture[uniqueId][fillTypeName] = moisture
+    
+    print(string.format("[MoistureSystem] setObjectMoisture SERVER: uniqueId=%s, fillType=%s, moisture=%s", 
+        tostring(uniqueId), tostring(fillTypeName), tostring(moisture)))
+
+    -- Then sync to clients
     g_client:getServerConnection():sendEvent(ObjectMoistureUpdateEvent.new(uniqueId, fillTypeName, moisture))
 end
 

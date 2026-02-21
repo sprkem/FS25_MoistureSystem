@@ -393,18 +393,11 @@ function GroundPropertyTracker:convertGrassToHayInCell(gridX, gridZ, grassFillTy
         -- Create hay pile with grass's moisture
         if grassMoisture then
             local hayKey = self:getGridKey(gridX, gridZ, hayFillType)
-            self.hayPiles[hayKey] = {
-                gridX = gridX,
-                gridZ = gridZ,
-                fillType = hayFillType,
-                properties = {
-                    moisture = grassMoisture
-                }
-            }
+            local properties = { moisture = grassMoisture }
 
-            -- Sync to clients
+            -- Send event to create pile on server and clients
             g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                hayKey, self.hayPiles[hayKey].properties, hayFillType, gridX, gridZ
+                hayKey, properties, hayFillType, gridX, gridZ
             ))
         end
 
@@ -448,18 +441,11 @@ function GroundPropertyTracker:convertHayToGrassInCell(gridX, gridZ, hayFillType
         -- Create grass pile with hay's moisture
         if hayMoisture then
             local grassKey = self:getGridKey(gridX, gridZ, grassFillType)
-            self.grassPiles[grassKey] = {
-                gridX = gridX,
-                gridZ = gridZ,
-                fillType = grassFillType,
-                properties = {
-                    moisture = hayMoisture
-                }
-            }
+            local properties = { moisture = hayMoisture }
 
-            -- Sync to clients
+            -- Send event to create pile on server and clients
             g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                grassKey, self.grassPiles[grassKey].properties, grassFillType, gridX, gridZ
+                grassKey, properties, grassFillType, gridX, gridZ
             ))
         end
 
@@ -561,17 +547,10 @@ function GroundPropertyTracker:processTeddedCells(teddedCellsThisCycle, processe
                         teddedMoisture = math.max(GroundPropertyTracker.MIN_GRASS_MOISTURE,
                             math.min(GroundPropertyTracker.MAX_GRASS_MOISTURE, teddedMoisture))
 
-                        self.grassPiles[key] = {
-                            gridX = gridX,
-                            gridZ = gridZ,
-                            fillType = fromFillType,
-                            properties = {
-                                moisture = teddedMoisture
-                            }
-                        }
+                        local properties = { moisture = teddedMoisture }
 
                         g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                            key, self.grassPiles[key].properties, fromFillType, gridX, gridZ))
+                            key, properties, fromFillType, gridX, gridZ))
 
                         processedThisCycle[gridKey] = true
                         self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
@@ -597,24 +576,20 @@ function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCe
 
             if teddedCellsThisCycle[gridKey] and not processedThisCycle[gridKey] then
                 totalDelta = totalDelta - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
-
-                local newMoisture = pile.properties.moisture + totalDelta
-                pile.properties.moisture = math.max(GroundPropertyTracker.MIN_GRASS_MOISTURE,
-                    math.min(GroundPropertyTracker.MAX_GRASS_MOISTURE, newMoisture))
-
                 self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
-            else
-                local newMoisture = pile.properties.moisture + totalDelta
-                pile.properties.moisture = math.max(GroundPropertyTracker.MIN_GRASS_MOISTURE,
-                    math.min(GroundPropertyTracker.MAX_GRASS_MOISTURE, newMoisture))
             end
 
-            if pile.properties.moisture <= GroundPropertyTracker.DRY_THRESHOLD then
+            local newMoisture = pile.properties.moisture + totalDelta
+            newMoisture = math.max(GroundPropertyTracker.MIN_GRASS_MOISTURE,
+                math.min(GroundPropertyTracker.MAX_GRASS_MOISTURE, newMoisture))
+
+            if newMoisture <= GroundPropertyTracker.DRY_THRESHOLD then
                 self.hayCells[gridKey] = 10
             end
 
+            local updatedProperties = { moisture = newMoisture }
             g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, pile.properties, pile.fillType, pile.gridX, pile.gridZ
+                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
             ))
         end
     end
@@ -780,32 +755,22 @@ function GroundPropertyTracker:processWindrowerPendingDrops()
                 local storage = self:getStorageForFillType(pending.fillType)
                 local pile = storage[key]
 
+                local finalMoisture
                 if pile then
                     -- Volume-weighted merge with existing pile
                     local totalVolume = existingVolume + pending.volume
                     local existingMoisture = pile.properties.moisture or avgMoisture
-                    local newMoisture = (existingMoisture * existingVolume + avgMoisture * pending.volume) / totalVolume
-
-                    pile.properties.moisture = newMoisture
-
-                    g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                        key, pile.properties, pending.fillType, pending.gridX, pending.gridZ
-                    ))
+                    finalMoisture = (existingMoisture * existingVolume + avgMoisture * pending.volume) / totalVolume
                 else
-                    -- Create new pile
-                    storage[key] = {
-                        gridX = pending.gridX,
-                        gridZ = pending.gridZ,
-                        fillType = pending.fillType,
-                        properties = {
-                            moisture = avgMoisture
-                        }
-                    }
-
-                    g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                        key, storage[key].properties, pending.fillType, pending.gridX, pending.gridZ
-                    ))
+                    -- New pile
+                    finalMoisture = avgMoisture
                 end
+
+                -- Send event to create/update pile on server and clients
+                local properties = { moisture = finalMoisture }
+                g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
+                    key, properties, pending.fillType, pending.gridX, pending.gridZ
+                ))
             end
 
             -- Remove from pending
@@ -845,17 +810,18 @@ function GroundPropertyTracker:updateHayMoisture(moistureDelta)
     for key, pile in pairs(self.hayPiles) do
         if pile.properties.moisture then
             local newMoisture = pile.properties.moisture + moistureDelta
-            pile.properties.moisture = math.max(GroundPropertyTracker.MIN_HAY_MOISTURE, newMoisture)
+            newMoisture = math.max(GroundPropertyTracker.MIN_HAY_MOISTURE, newMoisture)
 
             local gridKey = self:getSimpleGridKey(pile.gridX, pile.gridZ)
 
-            if pile.properties.moisture > GroundPropertyTracker.DRY_THRESHOLD then
+            if newMoisture > GroundPropertyTracker.DRY_THRESHOLD then
                 self.grassCells[gridKey] = 10
             end
 
-            -- Sync pile update to clients
+            -- Send event to update pile on server and clients
+            local updatedProperties = { moisture = newMoisture }
             g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, pile.properties, pile.fillType, pile.gridX, pile.gridZ
+                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
             ))
         end
     end
@@ -894,11 +860,12 @@ function GroundPropertyTracker:updateStrawMoisture(moistureDelta, dt)
         if pile.properties.moisture then
             -- Apply natural moisture change (no max clamp, straw can get very wet)
             local newMoisture = pile.properties.moisture + moistureDelta
-            pile.properties.moisture = math.max(0, newMoisture)
+            newMoisture = math.max(0, newMoisture)
 
-            -- Sync pile update to clients
+            -- Send event to update pile on server and clients
+            local updatedProperties = { moisture = newMoisture }
             g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, pile.properties, pile.fillType, pile.gridX, pile.gridZ
+                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
             ))
         end
     end

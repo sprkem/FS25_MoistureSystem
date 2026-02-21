@@ -32,7 +32,8 @@ function BaleRottingUpdateEvent:writeStream(streamId, connection)
     streamWriteInt32(streamId, count)
 
     for uniqueId, data in pairs(self.baleData) do
-        streamWriteString(streamId, uniqueId)
+        local object = g_currentMission:getObjectByUniqueId(uniqueId)
+        NetworkUtil.writeNodeObject(streamId, object)
         streamWriteFloat32(streamId, data.exposure)
         streamWriteFloat32(streamId, data.peakExposure)
         streamWriteInt32(streamId, data.status)
@@ -45,12 +46,12 @@ function BaleRottingUpdateEvent:readStream(streamId, connection)
     local count = streamReadInt32(streamId)
 
     for i = 1, count do
-        local uniqueId = streamReadString(streamId)
+        local object = NetworkUtil.readNodeObject(streamId)
         local exposure = streamReadFloat32(streamId)
         local peakExposure = streamReadFloat32(streamId)
         local status = streamReadInt32(streamId)
 
-        self.baleData[uniqueId] = {
+        self.baleData[object.uniqueId] = {
             exposure = exposure,
             peakExposure = peakExposure,
             status = status

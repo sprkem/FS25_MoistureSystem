@@ -49,12 +49,11 @@ end
 
 function PilePropertyUpdateEvent:run(connection)
     if not connection:getIsServer() then
-        g_server:broadcastEvent(PilePropertyUpdateEvent.new(
-            self.key, self.properties, self.fillTypeIndex, self.gridX, self.gridZ
-        ))
+        g_server:broadcastEvent(PilePropertyUpdateEvent.new(self.key, self.properties, self.fillTypeIndex, self.gridX, self.gridZ))
+        return  -- Server already processes event when sent, avoid double-processing
     end
 
-    -- Update or create pile on both server and client
+    -- Update or create pile (runs on server when sent, and on clients when broadcast received)
     local tracker = g_currentMission.groundPropertyTracker
     local moistureSystem = g_currentMission.MoistureSystem
     local storage
