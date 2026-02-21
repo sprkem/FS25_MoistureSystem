@@ -11,11 +11,20 @@
     <description>
         <en><![CDATA[Moisture System
 
-This mod adds a dynamic moisture system that tracks field and crop moisture levels throughout the growing season. Moisture varies by terrain elevation and changes based on weather conditions including rainfall, temperature, and time of day.
+Transform your farming experience with a sophisticated moisture simulation system that brings realism and strategic depth to Farming Simulator 25. This comprehensive mod introduces dynamic moisture mechanics that fundamentally change how you approach crop management, harvest timing, and storage decisions.
 
-Harvested crops have moisture values that affect their quality grade (A through D) and sell price. Each crop has unique moisture thresholds that influence its grade. Manage your harvest timing carefully to maximize profits!
+Experience authentic environmental interactions where moisture levels fluctuate naturally across your farm based on terrain elevation, prevailing weather patterns (rainfall, snowfall, temperature fluctuations), and day/night cycles. Fields at lower elevations stay wetter while higher ground dries faster, so consider moisture levels when planning which crops to plant where and when to harvest. Every farming decision gains new weight as you balance optimal timing against changing conditions.
 
-Features include terrain-based moisture variation, grass tedding and drying mechanics, tracked moisture on dropped crop piles, and configurable environment types (Dry/Normal/Wet). Access detailed crop grade tables and moisture calendars via the in-game menu (Shift+M).
+Advanced Crop Quality System: Your harvested yields are no longer uniform commodities. Each load receives a quality grade from A (premium) through D (poor) based on its moisture content at harvest, with direct economic consequences at the point of sale. Every crop species has been carefully calibrated with unique optimal moisture windows that reflect real-world agricultural standards. Master these ranges and time your operations precisely to maximize profitability. Access comprehensive grade tables and seasonal moisture projections through the integrated in-game interface (Shift+M).
+
+Features:
+- Terrain-aware field moisture simulation with monthly variation patterns across three distinct environment profiles (Dry/Wet/Normal)
+- Sophisticated grass management system featuring progressive tedding mechanics, weather-responsive drying rates, and automatic hay conversion at optimal moisture thresholds. Multiple tedding passes accelerates drying if you need it.
+- Ground rot: Grass and straw piles left exposed accumulate rain exposure over time, triggering progressive volume loss as organic material deteriorates. Timing your collection and baling operations becomes critical. Hay will revert to grass if it gets too wet.
+- Bale rotting: Unprotected bales track cumulative rain exposure with initial tolerance periods, escalating decay rates based on exposure history, and limited recovery during dry spells. Strategic use of wrapping and shelter infrastructure protects your investment.
+- Purchase the moisture meter hand tool in the store for precise field and pile readings on demand (You can display this in the HUD if preferred).
+
+Extensive customization options allow you to calibrate moisture dynamics, tedding efficiency, decay parameters, and interface preferences to match your preferred gameplay experience. Whether you seek hardcore realism or a gentler introduction to moisture management, the system adapts to your vision.
 
 Github: https://github.com/sprkem/FS25_MoistureSystem
 
