@@ -386,9 +386,6 @@ function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
         self.objectMoisture[uniqueId] = {}
     end
     self.objectMoisture[uniqueId][fillTypeName] = moisture
-    
-    print(string.format("[MoistureSystem] setObjectMoisture SERVER: uniqueId=%s, fillType=%s, moisture=%s", 
-        tostring(uniqueId), tostring(fillTypeName), tostring(moisture)))
 
     -- Then sync to clients
     g_client:getServerConnection():sendEvent(ObjectMoistureUpdateEvent.new(uniqueId, fillTypeName, moisture))
@@ -495,12 +492,12 @@ function MoistureSystem:shouldTrackFillType(fillType)
     if self:isGrassOnGroundFillType(fillType) then
         return true
     end
-    
+
     -- Track straw
     if self:isStrawFillType(fillType) then
         return true
     end
-    
+
     return CropValueMap.Data[fillType] ~= nil
 end
 
@@ -533,7 +530,7 @@ function MoistureSystem:onStartMission()
                 g_currentMission.groundPropertyTracker:convertGridCells(loadedGridSize, GroundPropertyTracker.GRID_SIZE)
             end
         end
-        
+
         -- Convert rotting bales in storage to live storage (after rotting data is loaded)
         MSPlaceableObjectStorageExtension.convertRottingBalesToLiveStorage()
     end
@@ -662,7 +659,7 @@ function MoistureSystem:loadFromXMLFile()
             end
 
             local placeableId = getXMLString(xmlFile, storageKey .. "#placeableId")
-            local objectIndex = getXMLInt(xmlFile, storageKey .. "#objectIndex")  -- 0-based
+            local objectIndex = getXMLInt(xmlFile, storageKey .. "#objectIndex") -- 0-based
             local uniqueId = getXMLString(xmlFile, storageKey .. "#uniqueId")
 
             if placeableId and objectIndex ~= nil and uniqueId then
@@ -738,12 +735,12 @@ function MoistureSystem:saveToXmlFile()
                     elseif abstractObject.baleAttributes and abstractObject.baleAttributes.uniqueId then
                         baleUniqueId = abstractObject.baleAttributes.uniqueId
                     end
-                    
+
                     -- Only save if bale has rotting data
                     if baleUniqueId and g_currentMission.baleRottingSystem.baleRainExposureTimes[baleUniqueId] then
                         local storageKey = string.format("%s.storageBales.bale(%d)", MoistureSystem.SaveKey, storageIndex)
                         setXMLString(xmlFile, storageKey .. "#placeableId", placeable.uniqueId)
-                        setXMLInt(xmlFile, storageKey .. "#objectIndex", objectIndex - 1)  -- 0-based for consistency
+                        setXMLInt(xmlFile, storageKey .. "#objectIndex", objectIndex - 1) -- 0-based for consistency
                         setXMLString(xmlFile, storageKey .. "#uniqueId", baleUniqueId)
                         storageIndex = storageIndex + 1
                     end
@@ -809,8 +806,9 @@ function MoistureSystem:writeInitialClientState(streamId, connection)
     streamWriteInt32(streamId, objectCount)
 
     for uniqueId, fillTypes in pairs(self.objectMoisture) do
-        streamWriteString(streamId, uniqueId)
-        
+        local object = g_currentMission:getObjectByUniqueId(uniqueId)
+        NetworkUtil.writeNodeObject(streamId, object)
+
         local fillTypeCount = 0
         for _ in pairs(fillTypes) do
             fillTypeCount = fillTypeCount + 1
@@ -848,17 +846,17 @@ function MoistureSystem:readInitialClientState(streamId, connection)
     -- Read object moisture data
     self.objectMoisture = {}
     local objectCount = streamReadInt32(streamId)
-    
+
     for i = 1, objectCount do
-        local uniqueId = streamReadString(streamId)
+        local object = NetworkUtil.readNodeObject(streamId)
         local fillTypeCount = streamReadInt32(streamId)
-        
-        self.objectMoisture[uniqueId] = {}
-        
+
+        self.objectMoisture[object.uniqueId] = {}
+
         for j = 1, fillTypeCount do
             local fillTypeName = streamReadString(streamId)
             local moisture = streamReadFloat32(streamId)
-            self.objectMoisture[uniqueId][fillTypeName] = moisture
+            self.objectMoisture[object.uniqueId][fillTypeName] = moisture
         end
     end
 

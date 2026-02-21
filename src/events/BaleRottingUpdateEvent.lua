@@ -44,7 +44,6 @@ function BaleRottingUpdateEvent:readStream(streamId, connection)
     self.baleData = {}
 
     local count = streamReadInt32(streamId)
-
     for i = 1, count do
         local object = NetworkUtil.readNodeObject(streamId)
         local exposure = streamReadFloat32(streamId)

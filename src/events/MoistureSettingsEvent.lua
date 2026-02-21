@@ -72,7 +72,11 @@ function MoistureSettingsEvent:run(connection)
             local menuOption = MoistureSettings.CONTROLS[id]
             if menuOption then
                 local isAdmin = g_currentMission:getIsServer() or g_currentMission.isMasterUser
-                menuOption:setState(MoistureSettings.getStateIndex(id))
+                local newState = MoistureSettings.getStateIndex(id)
+                -- Only update if state actually changed to prevent flicker
+                if menuOption:getState() ~= newState then
+                    menuOption:setState(newState)
+                end
                 menuOption:setDisabled(not isAdmin)
             end
         end

@@ -280,7 +280,7 @@ function MSPlayerHUDExtension:showVehicleInfo(vehicle)
     end
 
     -- Add moisture data for each fillType stored in this object
-    for fillTypeName, moisture in pairs(objectData) do        
+    for fillTypeName, moisture in pairs(objectData) do
         local fillTypeIndex = g_fillTypeManager:getFillTypeIndexByName(fillTypeName)
         if fillTypeIndex then
             local fillType = g_fillTypeManager:getFillTypeByIndex(fillTypeIndex)
@@ -380,9 +380,10 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
             }
 
             if baleData.status and statusTextMap[baleData.status] then
+                local statusText = g_i18n:getText(statusTextMap[baleData.status])
                 box:addLine(
                     g_i18n:getText("moistureSystem_baleStatus"),
-                    g_i18n:getText(statusTextMap[baleData.status])
+                    statusText
                 )
             end
         end

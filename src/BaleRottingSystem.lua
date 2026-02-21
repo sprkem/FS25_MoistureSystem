@@ -53,6 +53,9 @@ function BaleRottingSystem.new()
     -- Track last sync time (for network updates to clients)
     self.timeSinceLastSync = 0
 
+    -- Dirty flag to track if bale data has changed since last sync
+    self.isDirty = false
+
     return self
 end
 
@@ -116,7 +119,11 @@ function BaleRottingSystem:updateBaleExposure(uniqueId, timescaledDt, isExposedT
             peakExposure = peakExposure,
             status = status
         }
+        self.isDirty = true -- Mark data as changed
     else
+        if self.baleRainExposureTimes[uniqueId] then
+            self.isDirty = true -- Mark data as changed (bale removed)
+        end
         self.baleRainExposureTimes[uniqueId] = nil
     end
 
@@ -143,6 +150,7 @@ function BaleRottingSystem:setBaleInitialExposure(uniqueId, exposureTime)
         peakExposure = cappedExposure,
         status = self.BALE_STATUS.GETTING_WET
     }
+    self.isDirty = true -- Mark data as changed
 end
 
 ---
@@ -155,6 +163,21 @@ function BaleRottingSystem:update(dt)
     -- Check if bale rotting is enabled
     if not g_currentMission.MoistureSystem.settings.baleRotEnabled then
         return
+    end
+
+    -- Accumulate sync timer every frame (not just when update runs)
+    self.timeSinceLastSync = self.timeSinceLastSync + dt
+    if self.timeSinceLastSync >= self.SYNC_INTERVAL_MS then
+        -- Only sync if data has changed since last sync
+        if self.isDirty then
+            local baleCount = 0
+            for _ in pairs(self.baleRainExposureTimes) do
+                baleCount = baleCount + 1
+            end
+            g_client:getServerConnection():sendEvent(BaleRottingUpdateEvent.new(self.baleRainExposureTimes))
+            self.isDirty = false
+        end
+        self.timeSinceLastSync = 0
     end
 
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + dt
@@ -191,6 +214,7 @@ function BaleRottingSystem:update(dt)
         else
             -- Bale no longer exists, remove tracking
             self.baleRainExposureTimes[uniqueId] = nil
+            self.isDirty = true -- Mark data as changed
         end
     end
 
@@ -238,6 +262,7 @@ function BaleRottingSystem:update(dt)
     for i = #balesToDelete, 1, -1 do
         local bale = balesToDelete[i]
         self.baleRainExposureTimes[bale.uniqueId] = nil
+        self.isDirty = true -- Mark data as changed
 
         -- Check if bale is in storage and remove it first
         local storage = MSPlaceableObjectStorageExtension.findStorageForBale(bale)
@@ -249,13 +274,6 @@ function BaleRottingSystem:update(dt)
     end
 
     self.timeSinceLastUpdate = 0
-
-    -- Sync to clients periodically
-    self.timeSinceLastSync = self.timeSinceLastSync + dt
-    if self.timeSinceLastSync >= self.SYNC_INTERVAL_MS then
-        g_client:getServerConnection():sendEvent(BaleRottingUpdateEvent.new(self.baleRainExposureTimes))
-        self.timeSinceLastSync = 0
-    end
 end
 
 ---
@@ -365,7 +383,10 @@ end
 ---
 function BaleRottingSystem:onBaleDeleted(bale)
     if not self.isServer then return end
-    self.baleRainExposureTimes[bale.uniqueId] = nil
+    if self.baleRainExposureTimes[bale.uniqueId] then
+        self.baleRainExposureTimes[bale.uniqueId] = nil
+        self.isDirty = true -- Mark data as changed
+    end
 end
 
 ---
@@ -436,10 +457,11 @@ function BaleRottingSystem:writeInitialClientState(streamId, connection)
     end
 
     streamWriteInt32(streamId, baleCount)
-    
+
     for uniqueId, baleData in pairs(self.baleRainExposureTimes) do
-        if g_currentMission.itemSystem.itemByUniqueId[uniqueId] then
-            streamWriteString(streamId, uniqueId)
+        local object = g_currentMission:getObjectByUniqueId(uniqueId)
+        if object then
+            NetworkUtil.writeNodeObject(streamId, object)
             streamWriteInt32(streamId, math.floor(baleData.exposure))
             streamWriteInt32(streamId, math.floor(baleData.peakExposure))
         end
@@ -453,15 +475,15 @@ end
 ---
 function BaleRottingSystem:readInitialClientState(streamId, connection)
     self.baleRainExposureTimes = {}
-    
+
     local baleCount = streamReadInt32(streamId)
-    
+
     for i = 1, baleCount do
-        local uniqueId = streamReadString(streamId)
+        local object = NetworkUtil.readNodeObject(streamId)
         local exposureTime = streamReadInt32(streamId)
         local peakExposure = streamReadInt32(streamId)
-        
-        self.baleRainExposureTimes[uniqueId] = {
+
+        self.baleRainExposureTimes[object.uniqueId] = {
             exposure = exposureTime,
             peakExposure = peakExposure,
             status = self.BALE_STATUS.DRYING -- Status will be computed on next update

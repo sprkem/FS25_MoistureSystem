@@ -193,6 +193,13 @@ OriginalClass.originalFunction = Utils.prependedFunction(OriginalClass.originalF
 
 ### Network Event Pattern
 
+**CRITICAL: Event sending in FS25**
+- **ALWAYS use `g_client:getServerConnection():sendEvent()` to send events from your code**
+- **NEVER use `g_server:broadcastEvent()` directly from your mod code**
+- Both client AND server code uses `g_client:getServerConnection():sendEvent()` to initiate events
+- Inside the event's `run()` method, when server receives from client, it uses `g_server:broadcastEvent()` to relay to all clients
+- Do NOT change this pattern - it is correct and used consistently across all events
+
 **Create custom network events for multiplayer sync:**
 ```lua
 EventName = {}
@@ -224,7 +231,7 @@ function EventName:readStream(streamId, connection)
 end
 
 function EventName:run(connection)
-    -- Server broadcasts to all clients
+    -- Server broadcasts to all clients (ONLY inside run() method)
     if not connection:getIsServer() then
         g_server:broadcastEvent(EventName.new(self.param1, self.param2))
     end
@@ -234,7 +241,7 @@ function EventName:run(connection)
 end
 ```
 
-**Send event from client or server:**
+**Send event from anywhere in your code (client OR server):**
 ```lua
 g_client:getServerConnection():sendEvent(EventName.new(value1, value2))
 ```
