@@ -15,7 +15,7 @@ GroundPropertyTracker.WINDROWER_PROCESSING_CYCLES = 2
 GroundPropertyTracker.SLOW_ROT_EXPOSURE_TIME = 30 * 60 * 1000   -- 30 minutes (ms)
 GroundPropertyTracker.NORMAL_ROT_EXPOSURE_TIME = 50 * 60 * 1000 -- 50 minutes (ms)
 GroundPropertyTracker.DRYING_DECAY_RATE = 0.375
-GroundPropertyTracker.ROT_REMOVAL_THRESHOLD = 10.0 -- liters removed when accumulator reached
+GroundPropertyTracker.ROT_REMOVAL_THRESHOLD = 10.0              -- liters removed when accumulator reached
 -- ROT_ACCUMULATION_* are liters/sec at timescale 1; scaled by (updateDelta/1000)
 GroundPropertyTracker.ROT_ACCUMULATION_MIN = 0.0015
 GroundPropertyTracker.ROT_ACCUMULATION_MAX = 0.00375
@@ -151,13 +151,13 @@ function GroundPropertyTracker:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
     local maxX = math.max(sx, wx, hx)
     local minZ = math.min(sz, wz, hz)
     local maxZ = math.max(sz, wz, hz)
-    
+
     -- Calculate grid boundaries
     local startGridX = math.floor(minX / GroundPropertyTracker.GRID_SIZE) * GroundPropertyTracker.GRID_SIZE
     local endGridX = math.floor(maxX / GroundPropertyTracker.GRID_SIZE) * GroundPropertyTracker.GRID_SIZE
     local startGridZ = math.floor(minZ / GroundPropertyTracker.GRID_SIZE) * GroundPropertyTracker.GRID_SIZE
     local endGridZ = math.floor(maxZ / GroundPropertyTracker.GRID_SIZE) * GroundPropertyTracker.GRID_SIZE
-    
+
     -- Initialize return values
     local cells = {}
     local totalOverlapArea = 0
@@ -266,16 +266,32 @@ function GroundPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
 
     local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
 
-    local cellArea = GroundPropertyTracker.GRID_SIZE * GroundPropertyTracker.GRID_SIZE
-    local overlapThreshold = cellArea * 0.5
+    -- Calculate width vector (perpendicular to travel direction)
+    local widthVecX = wx - sx
+    local widthVecZ = wz - sz
+    local widthLength = math.sqrt(widthVecX * widthVecX + widthVecZ * widthVecZ)
+
+    -- Normalize width direction
+    local widthDirX = widthVecX / widthLength
+    local widthDirZ = widthVecZ / widthLength
+
+    -- Cell extent along arbitrary direction (diagonal worst case)
+    local cellHalfDiagonal = GroundPropertyTracker.GRID_SIZE / math.sqrt(2)
 
     for _, cell in ipairs(affectedCells) do
-        -- Only mark cells where more than 50% is within the tedded area
-        if cell.overlapArea > overlapThreshold then
-            local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
+        local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
 
-            -- Only mark if not in cooldown and not already in buffer
-            if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] then
+        if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] and not self.teddedGridCells[gridKey] then
+            -- Cell’s X extent
+            -- Vector from start point to cell center
+            local cellVecX = cell.gridX - sx
+            local cellVecZ = cell.gridZ - sz
+
+            -- Project cell position onto width direction (dot product)
+            local widthProjection = cellVecX * widthDirX + cellVecZ * widthDirZ
+
+            -- Check if cell center projection falls within working width (with cell extent margin)
+            if widthProjection >= -cellHalfDiagonal and widthProjection <= widthLength + cellHalfDiagonal then
                 self.teddedGridCellsBuffer[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
             end
         end
@@ -483,7 +499,6 @@ function GroundPropertyTracker:updateGrassMoisture(moistureDelta, dt)
     self:decrementCooldownsAndBuffers()
 end
 
-
 -- Process TEDDER conversions for hay/grasses
 function GroundPropertyTracker:processHayConversions(converter)
     for fromFillType, to in pairs(converter) do
@@ -501,7 +516,6 @@ function GroundPropertyTracker:processHayConversions(converter)
         end
     end
 end
-
 
 -- Handle tedded cells and create grass piles
 function GroundPropertyTracker:processTeddedCells(teddedCellsThisCycle, processedThisCycle, moistureSystem)
@@ -554,13 +568,13 @@ function GroundPropertyTracker:processTeddedCells(teddedCellsThisCycle, processe
 
                         processedThisCycle[gridKey] = true
                         self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
+                        self.teddedGridCells[gridKey] = nil -- Clear from teddedGridCells after processing
                     end
                 end
             end
         end
     end
 end
-
 
 -- Apply moisture changes to grass piles
 function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCellsThisCycle, processedThisCycle)
@@ -577,6 +591,7 @@ function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCe
             if teddedCellsThisCycle[gridKey] and not processedThisCycle[gridKey] then
                 totalDelta = totalDelta - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
                 self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
+                self.teddedGridCells[gridKey] = nil -- Clear from teddedGridCells after processing
             end
 
             local newMoisture = pile.properties.moisture + totalDelta
@@ -594,7 +609,6 @@ function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCe
         end
     end
 end
-
 
 -- Update rain exposure and perform grass rotting
 function GroundPropertyTracker:updateRainExposureAndProcessGrassRot(updateDelta)
@@ -695,7 +709,6 @@ function GroundPropertyTracker:updateRainExposureAndProcessGrassRot(updateDelta)
         end
     end
 end
-
 
 -- Decrement cooldowns and buffers
 function GroundPropertyTracker:decrementCooldownsAndBuffers()
@@ -873,7 +886,6 @@ function GroundPropertyTracker:updateStrawMoisture(moistureDelta, dt)
     local updateDelta = dt * g_currentMission:getEffectiveTimeScale()
     self:updateRainExposureAndProcessStrawRot(updateDelta)
 end
-
 
 -- Update rain exposure and perform straw rotting
 function GroundPropertyTracker:updateRainExposureAndProcessStrawRot(updateDelta)
@@ -1216,7 +1228,7 @@ function GroundPropertyTracker:saveToXMLFile(xmlFile, key)
 
         for i, pile in ipairs(piles) do
             local pileKey = string.format("%s.p(%d)", groupKey, i - 1)
-            
+
             -- Combine location into single attribute
             local location = string.format("%d,%d", math.floor(pile.gridX), math.floor(pile.gridZ))
             setXMLString(xmlFile, pileKey .. "#l", location)
@@ -1236,10 +1248,10 @@ end
 -- TODO: Remove this function after players have migrated to new format
 function GroundPropertyTracker:loadFromXMLFileLegacy(xmlFile, key)
     local sections = {
-        {name = "cropPiles", storage = self.gridPiles},
-        {name = "grassPiles", storage = self.grassPiles},
-        {name = "hayPiles", storage = self.hayPiles},
-        {name = "strawPiles", storage = self.strawPiles}
+        { name = "cropPiles", storage = self.gridPiles },
+        { name = "grassPiles", storage = self.grassPiles },
+        { name = "hayPiles", storage = self.hayPiles },
+        { name = "strawPiles", storage = self.strawPiles }
     }
 
     for _, section in ipairs(sections) do
@@ -1363,7 +1375,7 @@ function GroundPropertyTracker:writeInitialClientState(streamId, connection)
             count = count + 1
         end
         streamWriteInt32(streamId, count)
-        
+
         for _, pile in pairs(storage) do
             streamWriteInt32(streamId, pile.fillType)
             streamWriteFloat32(streamId, pile.gridX)
@@ -1388,13 +1400,13 @@ function GroundPropertyTracker:readInitialClientState(streamId, connection)
     -- Helper function to read piles into a storage table
     local function readPiles(storage)
         local count = streamReadInt32(streamId)
-        
+
         for i = 1, count do
             local fillType = streamReadInt32(streamId)
             local gridX = streamReadFloat32(streamId)
             local gridZ = streamReadFloat32(streamId)
             local moisture = streamReadFloat32(streamId)
-            
+
             local pile = {
                 fillType = fillType,
                 fillTypeName = g_fillTypeManager:getFillTypeNameByIndex(fillType),
@@ -1402,7 +1414,7 @@ function GroundPropertyTracker:readInitialClientState(streamId, connection)
                 gridZ = gridZ,
                 properties = { moisture = moisture }
             }
-            
+
             local gridKey = self:getGridKey(gridX, gridZ, fillType)
             storage[gridKey] = pile
         end
@@ -1413,7 +1425,7 @@ function GroundPropertyTracker:readInitialClientState(streamId, connection)
     self.grassPiles = {}
     self.hayPiles = {}
     self.strawPiles = {}
-    
+
     readPiles(self.gridPiles)
     readPiles(self.grassPiles)
     readPiles(self.hayPiles)
