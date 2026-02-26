@@ -281,7 +281,7 @@ function GroundPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
     for _, cell in ipairs(affectedCells) do
         local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
 
-        if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] then
+        if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] and not self.teddedGridCells[gridKey] then
             -- Cell’s X extent
             -- Vector from start point to cell center
             local cellVecX = cell.gridX - sx
@@ -568,6 +568,7 @@ function GroundPropertyTracker:processTeddedCells(teddedCellsThisCycle, processe
 
                         processedThisCycle[gridKey] = true
                         self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
+                        self.teddedGridCells[gridKey] = nil -- Clear from teddedGridCells after processing
                     end
                 end
             end
@@ -590,6 +591,7 @@ function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCe
             if teddedCellsThisCycle[gridKey] and not processedThisCycle[gridKey] then
                 totalDelta = totalDelta - g_currentMission.MoistureSystem.settings.teddingMoistureReduction
                 self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
+                self.teddedGridCells[gridKey] = nil -- Clear from teddedGridCells after processing
             end
 
             local newMoisture = pile.properties.moisture + totalDelta
