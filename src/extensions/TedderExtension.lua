@@ -1,5 +1,13 @@
 MSTedderExtension = {}
 
+function MSTedderExtension:onStartWorkAreaProcessing(dt)
+    -- Initialize accumulator for tedded areas this frame
+    local spec = self.spec_tedder
+    if spec then
+        spec.msTeddedAreasThisFrame = {}
+    end
+end
+
 function MSTedderExtension:processDropArea(superFunc, dropArea, fillType, amount)
     local tracker = g_currentMission.groundPropertyTracker
     if not g_currentMission.MoistureSystem:isGrassOnGroundFillType(fillType) then
@@ -31,8 +39,15 @@ function MSTedderExtension:processDropArea(superFunc, dropArea, fillType, amount
             end
         end
 
-        -- Mark area as tedded so updateGrassMoisture will process it
-        tracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
+        -- Accumulate area for unified marking at end of frame
+        local spec = self.spec_tedder
+        if spec and spec.msTeddedAreasThisFrame then
+            table.insert(spec.msTeddedAreasThisFrame, {
+                sx = sx, sz = sz,
+                wx = wx, wz = wz,
+                hx = hx, hz = hz
+            })
+        end
     end
     return dropped
 end
@@ -201,4 +216,36 @@ function MSTedderExtension:processTedderArea(_, workArea, dt)
     return area, area
 end
 
+function MSTedderExtension:onEndWorkAreaProcessing(dt, hasProcessed)
+    -- Process all accumulated tedded areas as one unified area
+    local spec = self.spec_tedder
+    local tracker = g_currentMission.groundPropertyTracker
+    
+    if spec and spec.msTeddedAreasThisFrame and #spec.msTeddedAreasThisFrame > 0 and tracker then
+        -- Calculate unified bounding box from all areas
+        local minX, minZ = math.huge, math.huge
+        local maxX, maxZ = -math.huge, -math.huge
+        
+        for _, area in ipairs(spec.msTeddedAreasThisFrame) do
+            minX = math.min(minX, area.sx, area.wx, area.hx)
+            maxX = math.max(maxX, area.sx, area.wx, area.hx)
+            minZ = math.min(minZ, area.sz, area.wz, area.hz)
+            maxZ = math.max(maxZ, area.sz, area.wz, area.hz)
+        end
+        
+        -- Mark unified area as tedded
+        -- Create rectangular area from bounding box
+        local sx, sz = minX, minZ
+        local wx, wz = maxX, minZ
+        local hx, hz = minX, maxZ
+        
+        tracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
+        
+        -- Clear accumulator
+        spec.msTeddedAreasThisFrame = {}
+    end
+end
+
+Tedder.onStartWorkAreaProcessing = Utils.prependedFunction(Tedder.onStartWorkAreaProcessing, MSTedderExtension.onStartWorkAreaProcessing)
 Tedder.processTedderArea = Utils.overwrittenFunction(Tedder.processTedderArea, MSTedderExtension.processTedderArea)
+Tedder.onEndWorkAreaProcessing = Utils.appendedFunction(Tedder.onEndWorkAreaProcessing, MSTedderExtension.onEndWorkAreaProcessing)

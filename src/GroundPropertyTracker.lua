@@ -266,32 +266,16 @@ function GroundPropertyTracker:markAreaTedded(sx, sz, wx, wz, hx, hz)
 
     local affectedCells = self:getAffectedGridCells(sx, sz, wx, wz, hx, hz)
 
-    -- Calculate width vector (perpendicular to travel direction)
-    local widthVecX = wx - sx
-    local widthVecZ = wz - sz
-    local widthLength = math.sqrt(widthVecX * widthVecX + widthVecZ * widthVecZ)
-
-    -- Normalize width direction
-    local widthDirX = widthVecX / widthLength
-    local widthDirZ = widthVecZ / widthLength
-
-    -- Cell extent along arbitrary direction (diagonal worst case)
-    local cellHalfDiagonal = GroundPropertyTracker.GRID_SIZE / math.sqrt(2)
+    -- Calculate cell area and overlap threshold (>50% of cell must be within working area)
+    local cellArea = GroundPropertyTracker.GRID_SIZE * GroundPropertyTracker.GRID_SIZE
+    local overlapThreshold = cellArea * 0.5
 
     for _, cell in ipairs(affectedCells) do
         local gridKey = self:getSimpleGridKey(cell.gridX, cell.gridZ)
 
         if not self.teddedGridCellsCooldown[gridKey] and not self.teddedGridCellsBuffer[gridKey] and not self.teddedGridCells[gridKey] then
-            -- Cell’s X extent
-            -- Vector from start point to cell center
-            local cellVecX = cell.gridX - sx
-            local cellVecZ = cell.gridZ - sz
-
-            -- Project cell position onto width direction (dot product)
-            local widthProjection = cellVecX * widthDirX + cellVecZ * widthDirZ
-
-            -- Check if cell center projection falls within working width (with cell extent margin)
-            if widthProjection >= -cellHalfDiagonal and widthProjection <= widthLength + cellHalfDiagonal then
+            -- Check if >50% of cell area overlaps the working area
+            if cell.overlapArea > overlapThreshold then
                 self.teddedGridCellsBuffer[gridKey] = GroundPropertyTracker.DELAYED_PROCESSING_CYCLES
             end
         end
