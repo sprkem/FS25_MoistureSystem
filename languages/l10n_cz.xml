@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+	<translationContributors/>
+	<texts>
+		<!-- Sekce nastavení -->
+		<text name="setting_moisture_section" text="Systém vlhkosti"/>
+		
+		<!-- Nastavení -->
+		<text name="setting_moisture_environment" text="Povětrnostní prostředí"/>
+		<text name="setting_moisture_environment_tooltip" text="Nastavuje typ klimatu pro výpočty vlhkosti"/>
+		<text name="setting_moisture_environment_dry" text="SUCHÉ"/>
+		<text name="setting_moisture_environment_normal" text="NORMÁLNÍ"/>
+		<text name="setting_moisture_environment_wet" text="VLHKÉ"/>
+		<text name="setting_moisture_moistureLossMultiplier" text="Násobitel ztráty vlhkosti"/>
+		<text name="setting_moisture_moistureLossMultiplier_tooltip" text="Řídí rychlost ztráty vlhkosti (1-10)"/>
+		<text name="setting_moisture_moistureGainMultiplier" text="Násobitel získávání vlhkosti"/>
+		<text name="setting_moisture_moistureGainMultiplier_tooltip" text="Řídí rychlost získávání vlhkosti z deště (1-10)"/>
+		<text name="setting_moisture_teddingMoistureReduction" text="Snížení vlhkosti obrácením"/>
+		<text name="setting_moisture_teddingMoistureReduction_tooltip" text="Množství vlhkosti snížené při jednom průjezdu obracečem (1-5%)"/>
+		<text name="setting_moisture_baleRotEnabled" text="Hnití balíků"/>
+		<text name="setting_moisture_baleRotEnabled_tooltip" text="Povolit hnití balíků při dešti/sněhu. Obalené balíky a balíky pod přístřeškem jsou chráněny."/>
+		<text name="setting_moisture_baleRotRate" text="Rychlost hnití balíků"/>
+		<text name="setting_moisture_baleRotRate_tooltip" text="Násobitel rychlosti ztráty objemu balíků. Vyšší hodnoty znamenají rychlejší hnití."/>
+		<text name="setting_moisture_baleExposureDecayRate" text="Rychlost sušení balíků"/>
+		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="Jak rychle balíky vysychají po ukončení deště. Nižší = pomalejší sušení."/>
+		<text name="setting_moisture_showFieldMoisture" text="Zobrazit vlhkost pole"/>
+		<text name="setting_moisture_showFieldMoisture_tooltip" text="Zobrazit aktuální úroveň vlhkosti na vaší pozici v HUD informací o poli."/>
+		<text name="setting_moisture_moistureMeterReporting" text="Hlášení vlhkoměru"/>
+		<text name="setting_moisture_moistureMeterReporting_tooltip" text="Jak vlhkoměr zobrazuje měření."/>
+		<text name="setting_moisture_moistureMeterReporting_blinking" text="Blikající upozornění"/>
+		<text name="setting_moisture_moistureMeterReporting_notification" text="Notifikace"/>
+		
+		<!-- Obecné Vypnuto/Zapnuto -->
+		<text name="setting_setting_off" text="VYPNUTO"/>
+		<text name="setting_setting_on" text="ZAPNUTO"/>
+		
+		<!-- Oprávnění pro multiplayer -->
+		<text name="permission_moisture_moistureSettings" text="Změnit nastavení vlhkosti"/>
+		
+		<!-- Ovládací vazby -->
+		<text name="input_MOISTURE_MENU" text="Otevřít menu vlhkosti"/>
+		
+		<!-- Zobrazení HUD -->
+		<text name="moistureSystem_fieldInfo" text="Vlhkost pole"/>
+		<text name="moistureSystem_moisture" text="Vlhkost"/>
+		<text name="moistureSystem_range" text="Očekávaný rozsah"/>
+		<text name="moistureSystem_rainExposure" text="Vystavení dešti"/>
+		<text name="moistureSystem_baleStatus" text="Stav"/>
+		<text name="moistureSystem_baleGettingWet" text="Namáčí se"/>
+		<text name="moistureSystem_baleRottingSlowly" text="Pomalu hnije"/>
+		<text name="moistureSystem_baleRotting" text="Hnije"/>
+		<text name="moistureSystem_baleRottingQuickly" text="Rychle hnije"/>
+		<text name="moistureSystem_baleDrying" text="Schne"/>
+		
+		<!-- GUI -->
+		<text name="moistureSystem_gui_cropGradeValues" text="Hodnoty tříd plodin"/>
+		<text name="moistureSystem_gui_description" text="Níže uvedená data ukazují hodnocení vlhkosti pro každou podporovanou plodinu. Je zobrazen rozsah vlhkosti pro danou třídu a cenový násobitel pro tuto třídu je uveden v závorkách."/>
+		<text name="moistureSystem_gui_cropName" text="Název plodiny"/>
+		<text name="moistureSystem_gui_gradeA" text="Třída A"/>
+		<text name="moistureSystem_gui_gradeB" text="Třída B"/>
+		<text name="moistureSystem_gui_gradeC" text="Třída C"/>
+		<text name="moistureSystem_gui_gradeD" text="Třída D"/>
+		
+		<!-- Kalendář GUI -->
+		<text name="moistureSystem_gui_moistureCalendar" text="Kalendář vlhkosti"/>
+		<text name="moistureSystem_gui_currentEnvironment" text="Aktuální prostředí"/>
+		<text name="moistureSystem_gui_calendarDescription" text="Kalendář níže ukazuje očekávaný rozsah vlhkosti pro každý měsíc na základě aktuálního nastavení prostředí. Úrovně vlhkosti jsou ovlivněny srážkami, teplotou a ročním obdobím."/>
+		
+		<!-- Ruční nástroj -->
+		<text name="moistureSystem_moistureMeter" text="Vlhkoměr"/>
+		<text name="moistureSystem_moistureMeterFunction" text="Měření úrovně vlhkosti pole"/>
+		<text name="moistureSystem_measureLocation" text="Měřit vlhkost"/>
+		<text name="moistureSystem_groundMoistureReading" text="Vlhkost půdy: %.2f%%"/>
+		
+		<!-- Menu nápovědy -->
+		<text name="help_moisture_title" text="Systém vlhkosti"/>
+		
+		<!-- Stránka přehledu -->
+		<text name="help_moisture_overview_title" text="Přehled"/>
+		<text name="help_moisture_overview_1" text="Mod Systém vlhkosti zavádí dynamické úrovně vlhkosti, které ovlivňují plodiny, trávu a balíky na celé vaší farmě. Vlhkost se mění v závislosti na nadmořské výšce terénu, povětrnostních podmínkách a denní době."/>
+		<text name="help_moisture_overview_2" text="To vytváří realističtější farmářský zážitek, kde záleží na načasování sklizně a řízení skladování. Použijte Menu vlhkosti (Shift+M) k zobrazení podrobných tabulek tříd plodin a kalendářů vlhkosti."/>
+		
+		<!-- Stránka vlhkosti pole -->
+		<text name="help_moisture_field_title" text="Vlhkost pole"/>
+		<text name="help_moisture_field_1" text="Vlhkost pole se na vaší farmě liší na základě několika faktorů: Nadmořská výška terénu (nižší oblasti jsou vlhčí), povětrnostní podmínky (déšť a sníh zvyšují vlhkost), teplota (teplejší počasí urychluje sušení) a denní doba (vlhkost klesá více během dne)."/>
+		<text name="help_moisture_field_2" text="Měsíční rozsahy vlhkosti se mění v průběhu roku na základě vámi zvoleného typu prostředí (Suché/Normální/Vlhké). Použijte ruční vlhkoměr nebo povolte zobrazení HUD v nastavení pro sledování úrovní vlhkosti."/>
+		
+		<!-- Stránka hodnocení plodin -->
+		<text name="help_moisture_grading_title" text="Kvalita a třídění plodin"/>
+		<text name="help_moisture_grading_1" text="Sklizené plodiny jsou tříděny od A do D na základě jejich vlhkosti. Třída A je optimální vlhkost s plnou cenou, Třída B je dobrá vlhkost s mírně sníženou cenou, Třída C je přijatelná vlhkost se středně sníženou cenou a Třída D je špatná vlhkost s výrazně sníženou cenou."/>
+		<text name="help_moisture_grading_2" text="Každý typ plodiny má svůj vlastní ideální rozsah vlhkosti. Sklizeň ve správný čas maximalizuje vaše zisky! Vlhkost z pole se přenáší do sklizeného materiálu a sleduje se přes vozidla, hromady na zemi a skladování."/>
+		<text name="help_moisture_grading_3" text="Zobrazit podrobné rozsahy tříd pro všechny podporované plodiny v Menu vlhkosti (Shift+M). Plodiny zahrnují pšenici, ječmen, oves, kukuřici, řepku, slunečnici, sóju a mnoho dalších."/>
+		
+		<!-- Stránka trávy a sena -->
+		<text name="help_moisture_grass_title" text="Obracení trávy a seno"/>
+		<text name="help_moisture_grass_1" text="Spravujte výrobu sena s realistickou mechanikou sušení trávy. Použijte obraceč k rozložení a provzdušnění trávy, což sníží její obsah vlhkosti. Můžete obrátit vícekrát pro rychlejší sušení! Počasí ovlivňuje sušení - slunce ho urychluje, zatímco déšť zvyšuje vlhkost."/>
+		<text name="help_moisture_grass_2" text="Když tráva dostatečně uschne (pod 7% vlhkosti), automaticky se změní na seno. Pokud se seno znovu příliš navlhčí (nad 7% vlhkosti), změní se zpět na trávu."/>
+		<text name="help_moisture_grass_3" text="Hromady trávy se vystavují dešti, když jsou ponechány na zemi během vlhkého počasí. Po dostatečném vystavení začne tráva hnít a postupně ztrácet objem. Sbírejte nebo lisujte trávu rychle, abyste předešli ztrátám."/>
+		
+		<!-- Stránka hnití na zemi -->
+		<text name="help_moisture_groundrot_title" text="Hnití materiálu na zemi"/>
+		<text name="help_moisture_groundrot_1" text="Hromady trávy i slámy ponechané na zemi sledují vystavení dešti. Hromady mohou snést určité množství deště před začátkem degradace (ochranná lhůta), ale čím déle byl materiál vystaven dešti, tím rychleji hnije."/>
+		<text name="help_moisture_groundrot_2" text="Hromady pomalu schnou, když déšť ustane, ale jakmile hnití začne, pokračuje. Hnijící materiál postupně mizí a ztrácí objem. Sbírejte nebo lisujte slámu a trávu rychle, abyste předešli ztrátám, zejména před špatným počasím."/>
+		
+		<!-- Stránka balíků -->
+		<text name="help_moisture_bales_title" text="Správa balíků"/>
+		<text name="help_moisture_bales_1" text="Balíky ponechané vystavené počasí postupně hromadí čas vystavení dešti, když jsou nezakryté během vlhkého počasí. Balíky mohou snést určité vystavení před začátkem hnití - tato počáteční fáze se nazývá 'Namáčí se'."/>
+		<text name="help_moisture_bales_2" text="Po ochranné lhůtě balíky vstupují do progresivních stavů hnití: Pomalu hnije, Hnije a Rychle hnije. Čím déle byly balíky v minulosti vystaveny, tím rychleji hnijí. Balíky pomalu schnou, když déšť ustane, ale jakmile hnití začne, nemohou se zotavit a postupně ztrácejí objem."/>
+		<text name="help_moisture_bales_3" text="Ochrana: Obalené balíky a balíky skladované pod přístřeškem jsou chráněny před počasím. Skladujte balíky uvnitř, obalte je nebo je rychle prodejte, abyste předešli ztrátám."/>
+		
+		<!-- Stránka vlhkoměru -->
+		<text name="help_moisture_meter_title" text="Použití vlhkoměru"/>
+		<text name="help_moisture_meter_1" text="Vlhkoměr je ruční nástroj dostupný v sekci Ruční nástroje v obchodě. Pro jeho použití: Kupte vlhkoměr, vybavte si jej z menu ručních nástrojů, poté stiskněte a podržte tlačítko akce po dobu 4 sekund pro získání měření vlhkosti na vaší aktuální pozici."/>
+		<text name="help_moisture_meter_2" text="Alternativně můžete povolit 'Zobrazit vlhkost pole' v nastavení hry pro zobrazení vlhkosti v HUD informací o poli bez použití ručního nástroje. To je užitečné pro rychlou kontrolu při obsluze zařízení."/>
+		
+		<!-- Stránka nastavení -->
+		<text name="help_moisture_settings_title" text="Konfigurace"/>
+		<text name="help_moisture_settings_1" text="Vyberte z tří klimatických předvoleb v nastavení hry: Suché (nižší úrovně vlhkosti), Normální (vyvážené, výchozí) nebo Vlhké (vyšší úrovně vlhkosti). Každá předvolba ovlivňuje měsíční rozsahy vlhkosti v průběhu roku."/>
+		<text name="help_moisture_settings_2" text="Dolaďte chování pomocí nastavitelných parametrů: Násobitele ztráty/získávání vlhkosti řídí rychlost sušení a navlhčování, Snížení vlhkosti obrácením upravuje sušení na průjezd a Nastavení hnití balíků řídí, zda/jak rychle balíky deteriorují."/>
+		<text name="help_moisture_settings_3" text="Další nastavení zahrnují Ochrannou lhůtu balíků (tolerance deště před hnitím), Rychlost sušení balíků (rychlost zotavení), Přepínač zobrazení vlhkosti pole a Styl hlášení vlhkoměru. Ve hře pro více hráčů hostitel/admin ovládá tato nastavení."/>
+	</texts>
+</l10n>
