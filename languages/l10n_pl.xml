@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+	<translationContributors/>
+	<texts>
+		<!-- Settings Section -->
+		<text name="setting_moisture_section" text="System Wilgotności"/>
+		
+		<!-- Settings -->
+		<text name="setting_moisture_environment" text="Środowisko pogodowe"/>
+		<text name="setting_moisture_environment_tooltip" text="Ustawia typ klimatu dla obliczeń wilgotności"/>
+		<text name="setting_moisture_environment_dry" text="SUCHY"/>
+		<text name="setting_moisture_environment_normal" text="NORMALNY"/>
+		<text name="setting_moisture_environment_wet" text="MOKRY"/>
+		<text name="setting_moisture_moistureLossMultiplier" text="Mnożnik utraty wilgotności"/>
+		<text name="setting_moisture_moistureLossMultiplier_tooltip" text="Kontroluje szybkość utraty wilgotności (1-10)"/>
+		<text name="setting_moisture_moistureGainMultiplier" text="Mnożnik wzrostu wilgotności"/>
+		<text name="setting_moisture_moistureGainMultiplier_tooltip" text="Kontroluje szybkość wzrostu wilgotności z powodu deszczu (1-10)"/>
+		<text name="setting_moisture_teddingMoistureReduction" text="Redukcja wilgotności przy przetrząsaniu"/>
+		<text name="setting_moisture_teddingMoistureReduction_tooltip" text="Ilość wilgotności redukowana przy każdym przejeździe przetrząsaczem (1-5%)"/>
+		<text name="setting_moisture_baleRotEnabled" text="Gnicie bel"/>
+		<text name="setting_moisture_baleRotEnabled_tooltip" text="Włącza gnicie bel podczas deszczu/śniegu. Owinięte bele i bele pod zadaszeniem są chronione."/>
+		<text name="setting_moisture_baleRotRate" text="Tempo gnicia bel"/>
+		<text name="setting_moisture_baleRotRate_tooltip" text="Mnożnik tempa utraty objętości beli. Wyższe wartości oznaczają szybsze gnicie."/>
+		<text name="setting_moisture_baleExposureDecayRate" text="Tempo schnięcia bel"/>
+		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="Jak szybko bele schną po ustaniu deszczu. Niższe wartości = wolniejsze schnięcie."/>
+		<text name="setting_moisture_showFieldMoisture" text="Pokaż wilgotność pola"/>
+		<text name="setting_moisture_showFieldMoisture_tooltip" text="Wyświetla aktualny poziom wilgotności w twoim położeniu w oknie informacji o polu (HUD)."/>
+		<text name="setting_moisture_moistureMeterReporting" text="Raportowanie wilgotnościomierza"/>
+		<text name="setting_moisture_moistureMeterReporting_tooltip" text="Sposób, w jaki wilgotnościomierz wyświetla odczyty."/>
+		<text name="setting_moisture_moistureMeterReporting_blinking" text="Migający alert"/>
+		<text name="setting_moisture_moistureMeterReporting_notification" text="Powiadomienie"/>
+		
+		<!-- Generic On/Off -->
+		<text name="setting_setting_off" text="WYŁ."/>
+		<text name="setting_setting_on" text="WŁ."/>
+		
+		<!-- Multiplayer Permission -->
+		<text name="permission_moisture_moistureSettings" text="Zmień ustawienia wilgotności"/>
+		
+		<!-- Input Bindings -->
+		<text name="input_MOISTURE_MENU" text="Otwórz menu wilgotności"/>
+		
+		<!-- HUD Display -->
+		<text name="moistureSystem_fieldInfo" text="Wilgotność pola"/>
+		<text name="moistureSystem_moisture" text="Wilgotność"/>
+		<text name="moistureSystem_range" text="Oczekiwany zakres"/>
+		<text name="moistureSystem_rainExposure" text="Wystawienie na deszcz"/>
+		<text name="moistureSystem_baleStatus" text="Status"/>
+		<text name="moistureSystem_baleGettingWet" text="Moknie"/>
+		<text name="moistureSystem_baleRottingSlowly" text="Powoli gnije"/>
+		<text name="moistureSystem_baleRotting" text="Gnije"/>
+		<text name="moistureSystem_baleRottingQuickly" text="Szybko gnije"/>
+		<text name="moistureSystem_baleDrying" text="Schnie"/>
+		
+		<!-- GUI -->
+		<text name="moistureSystem_gui_cropGradeValues" text="Wartości klas plonów"/>
+		<text name="moistureSystem_gui_description" text="Poniższe dane przedstawiają klasyfikację wilgotności dla każdej obsługiwanej uprawy. Przedstawiono zakres wilgotności dla danej klasy, a mnożnik ceny dla tej klasy podano w nawiasach."/>
+		<text name="moistureSystem_gui_cropName" text="Nazwa uprawy"/>
+		<text name="moistureSystem_gui_gradeA" text="Klasa A"/>
+		<text name="moistureSystem_gui_gradeB" text="Klasa B"/>
+		<text name="moistureSystem_gui_gradeC" text="Klasa C"/>
+		<text name="moistureSystem_gui_gradeD" text="Klasa D"/>
+		
+		<!-- Calendar GUI -->
+		<text name="moistureSystem_gui_moistureCalendar" text="Kalendarz wilgotności"/>
+		<text name="moistureSystem_gui_currentEnvironment" text="Obecne środowisko"/>
+		<text name="moistureSystem_gui_calendarDescription" text="Poniższy kalendarz pokazuje oczekiwany zakres wilgotności dla każdego miesiąca na podstawie obecnego ustawienia środowiska. Poziom wilgotności zależy od opadów deszczu, temperatury i pory roku."/>		
+		
+		<!-- Hand Tool -->
+		<text name="moistureSystem_moistureMeter" text="Wilgotnościomierz"/>
+		<text name="moistureSystem_moistureMeterFunction" text="Mierzy poziom wilgotności pola"/>
+		<text name="moistureSystem_measureLocation" text="Zmierz wilgotność"/>
+		<text name="moistureSystem_groundMoistureReading" text="Wilgotność podłoża: %.2f%%"/>
+		
+		<!-- Help Menu -->
+		<text name="help_moisture_title" text="System Wilgotności"/>
+		
+		<!-- Overview Page -->
+		<text name="help_moisture_overview_title" text="Przegląd"/>
+		<text name="help_moisture_overview_1" text="Mod System Wilgotności wprowadza dynamiczne poziomy wilgotności, które wpływają na uprawy, trawę i bele w twoim gospodarstwie. Wilgotność zmienia się w zależności od wysokości terenu, warunków pogodowych i pory dnia."/>
+		<text name="help_moisture_overview_2" text="Tworzy to bardziej realistyczne doświadczenie rolnicze, w którym czas zbiorów i zarządzanie przechowywaniem mają znaczenie. Użyj menu wilgotności (Shift+M), aby wyświetlić szczegółowe tabele klas upraw i kalendarze wilgotności."/>
+		
+		<!-- Field Moisture Page -->
+		<text name="help_moisture_field_title" text="Wilgotność pola"/>
+		<text name="help_moisture_field_1" text="Wilgotność pola różni się w zależności od kilku czynników na twojej farmie: wysokości terenu (niższe obszary są bardziej wilgotne), warunków pogodowych (deszcz i śnieg zwiększają wilgotność), temperatury (cieplejsza pogoda przyspiesza wysychanie) oraz pory dnia (wilgotność spada szybciej w ciągu dnia)."/>
+		<text name="help_moisture_field_2" text="Miesięczne zakresy wilgotności zmieniają się w ciągu roku w zależności od wybranego typu środowiska (Suche/Normalne/Mokre). Użyj wilgotnościomierza (narzędzia ręcznego) lub włącz wyświetlanie na ekranie (HUD) w ustawieniach, aby monitorować poziom wilgotności."/>
+		
+		<!-- Crop Grading Page -->
+		<text name="help_moisture_grading_title" text="Jakość i klasyfikacja plonów"/>
+		<text name="help_moisture_grading_1" text="Zebrane uprawy są oceniane w skali od A do D na podstawie ich zawartości wilgoci. Klasa A to optymalna wilgotność z pełną ceną, Klasa B to dobra wilgotność z lekko obniżoną ceną, Klasa C to zadowalająca wilgotność z umiarkowanie obniżoną ceną, a Klasa D to słaba wilgotność ze znacznie obniżoną ceną."/>
+		<text name="help_moisture_grading_2" text="Każdy rodzaj uprawy ma swój własny, idealny zakres wilgotności. Zbieraj plony w odpowiednim czasie, aby zmaksymalizować zyski! Wilgotność z pola jest przenoszona na zebrany materiał i śledzona w pojazdach, na pryzmach oraz w magazynach."/>
+		<text name="help_moisture_grading_3" text="Zobacz szczegółowe zakresy klas dla wszystkich obsługiwanych upraw w Menu Wilgotności (Shift+M). Uprawy obejmują m.in. pszenicę, jęczmień, owies, kukurydzę, rzepak, słonecznik, soję i wiele innych."/>
+		
+		<!-- Grass & Hay Page -->
+		<text name="help_moisture_grass_title" text="Przetrząsanie trawy i siano"/>
+		<text name="help_moisture_grass_1" text="Zarządzaj produkcją siana za pomocą realistycznej mechaniki schnięcia trawy. Użyj przetrząsacza, aby rozrzucić i napowietrzyć trawę, zmniejszając jej wilgotność. Możesz przetrząsać wielokrotnie, aby przyspieszyć schnięcie! Pogoda wpływa na schnięcie - słońce je przyspiesza, a deszcz zwiększa wilgotność."/>
+		<text name="help_moisture_grass_2" text="Gdy trawa wyschnie wystarczająco (poniżej 7% wilgotności), automatycznie zamienia się w siano. Jeśli siano znów stanie się zbyt mokre (powyżej 7% wilgotności), zamienia się z powrotem w trawę."/>
+		<text name="help_moisture_grass_3" text="Pryzmy trawy kumulują czas wystawienia na deszcz, jeśli zostaną pozostawione na ziemi podczas mokrej pogody. Po odpowiednio długim czasie ekspozycji, trawa zaczyna gnić i stopniowo tracić objętość. Zbieraj lub beluj trawę bez zwłoki, aby uniknąć strat."/>
+		
+		<!-- Ground Rot Page -->
+		<text name="help_moisture_groundrot_title" text="Gnicie materiału na ziemi"/>
+		<text name="help_moisture_groundrot_1" text="Zarówno pryzmy trawy, jak i słomy pozostawione na ziemi śledzą ekspozycję na deszcz. Pryzmy mogą znieść trochę deszczu, zanim zacznie się degradacja (okres karencji), ale im dłużej materiał był wystawiony na deszcz, tym szybciej gnije."/>
+		<text name="help_moisture_groundrot_2" text="Pryzmy powoli schną, gdy deszcz ustaje, ale gdy proces gnicia się rozpocznie, będzie on kontynuowany. Gnijący materiał stopniowo znika i traci objętość. Zbieraj lub beluj słomę i trawę bez zwłoki, aby uniknąć strat, zwłaszcza przed nadejściem złej pogody."/>
+		
+		<!-- Bales Page -->
+		<text name="help_moisture_bales_title" text="Zarządzanie belami"/>
+		<text name="help_moisture_bales_1" text="Bele pozostawione na zewnątrz stopniowo kumulują czas ekspozycji na deszcz, jeśli są odkryte podczas mokrej pogody. Bele mogą przetrwać pewną ekspozycję zanim zaczną gnić – ta początkowa faza nazywa się 'Moknie'."/>
+		<text name="help_moisture_bales_2" text="Po okresie karencji bele wchodzą w postępujące stany gnicia: Powoli Gnije, Gnije i Szybko Gnije. Im dłużej bele były wcześniej odsłonięte, tym szybciej gniją. Bele powoli schną po ustaniu deszczu, ale gdy proces gnicia się rozpocznie, nie można ich uratować i będą stopniowo tracić objętość."/>
+		<text name="help_moisture_bales_3" text="Ochrona: Owinięte bele i bele przechowywane pod dachem są chronione przed pogodą. Przechowuj bele w pomieszczeniach, owijaj je lub sprzedawaj od razu, aby zapobiec stratom."/>
+		
+		<!-- Moisture Meter Page -->
+		<text name="help_moisture_meter_title" text="Korzystanie z wilgotnościomierza"/>
+		<text name="help_moisture_meter_1" text="Wilgotnościomierz to narzędzie ręczne dostępne w dziale Narzędzia Ręczne w sklepie. Aby go użyć: Kup wilgotnościomierz, wyposaż się w niego z menu narzędzi ręcznych, a następnie naciśnij i przytrzymaj przycisk akcji przez 4 sekundy, aby uzyskać odczyt wilgotności w twojej bieżącej lokalizacji."/>
+		<text name="help_moisture_meter_2" text="Alternatywnie, możesz włączyć opcję 'Pokaż wilgotność pola' w ustawieniach gry, aby zobaczyć wilgotność w oknie informacji o polu (HUD) bez użycia narzędzia ręcznego. Jest to przydatne do szybkich kontroli podczas obsługi maszyn."/>
+		
+		<!-- Settings Page -->
+		<text name="help_moisture_settings_title" text="Konfiguracja"/>
+		<text name="help_moisture_settings_1" text="Wybierz jedno z trzech ustawień klimatu w ustawieniach gry: Suchy (niższe poziomy wilgotności), Normalny (zrównoważony, domyślny) lub Mokry (wyższe poziomy wilgotności). Każde ustawienie wpływa na miesięczne zakresy wilgotności w ciągu całego roku."/>
+		<text name="help_moisture_settings_2" text="Dostosuj zachowanie za pomocą konfigurowalnych ustawień: Mnożniki utraty/wzrostu wilgotności kontrolują prędkość schnięcia i namakania, Redukcja wilgotności przy przetrząsaniu reguluje schnięcie na jeden przejazd, a ustawienia gnicia bel kontrolują, czy/jak szybko bele ulegają degradacji."/>
+		<text name="help_moisture_settings_3" text="Inne opcje obejmują Okres karencji dla bel (tolerancja na deszcz przed rozpoczęciem gnicia), Tempo schnięcia bel (prędkość regeneracji), przełącznik wyświetlania wilgotności pola oraz styl raportowania wilgotnościomierza. W trybie wieloosobowym host/admin zarządza tymi ustawieniami."/>
+	
+	</texts>
+</l10n>
