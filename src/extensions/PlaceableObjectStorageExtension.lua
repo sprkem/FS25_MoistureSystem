@@ -85,10 +85,14 @@ function MSPlaceableObjectStorageExtension:addObjectToObjectStorage(superFunc, o
     local rx, ry, rz = getWorldRotation(self.rootNode)
 
     -- Create custom abstract object to hold the live bale
+    -- Look up the registered abstract object class for Bale to get its ABSTRACT_OBJECT_ID
+    local baleAbstractClass = PlaceableObjectStorage.ABSTRACT_OBJECTS_BY_CLASS_NAME["Bale"]
+
     local abstractObject = {
         isRottingBale = true,         -- Mark as our custom storage
         baleObject = nil,
-        REFERENCE_CLASS_NAME = "Bale" -- Required for XML save
+        REFERENCE_CLASS_NAME = "Bale", -- Required for XML save
+        ABSTRACT_OBJECT_ID = baleAbstractClass and baleAbstractClass.ABSTRACT_OBJECT_ID or 1 -- Required for network sync
     }
 
     -- Store the bale object (keep it alive)
@@ -267,10 +271,12 @@ function MSPlaceableObjectStorageExtension.convertRottingBalesToLiveStorage()
                                 setVisibility(newBale.nodeId, false)
 
                                 -- Replace the abstract object with our custom one
+                                local baleAbstractClass = PlaceableObjectStorage.ABSTRACT_OBJECTS_BY_CLASS_NAME["Bale"]
                                 abstractObject.baleObject = newBale
                                 abstractObject.baleAttributes = nil
                                 abstractObject.isRottingBale = true
                                 abstractObject.REFERENCE_CLASS_NAME = "Bale"
+                                abstractObject.ABSTRACT_OBJECT_ID = baleAbstractClass and baleAbstractClass.ABSTRACT_OBJECT_ID or 1
 
                                 -- Add all required methods
                                 MSPlaceableObjectStorageExtension.addAbstractObjectMethods(abstractObject)

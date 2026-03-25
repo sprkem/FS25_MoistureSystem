@@ -231,6 +231,12 @@ function BaleRottingSystem:update(dt)
             -- Mark for deletion if empty
             if item.fillLevel <= 0 then
                 table.insert(balesToDelete, item)
+            else
+                -- If bale is in storage, dirty the storage so HUD updates
+                local storage = MSPlaceableObjectStorageExtension.findStorageForBale(item)
+                if storage then
+                    storage:setObjectStorageObjectInfosDirty()
+                end
             end
         end
     end

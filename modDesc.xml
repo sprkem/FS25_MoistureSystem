@@ -32,11 +32,12 @@ Changelog:
 
 1.0.0.2:
 - Rework events in multiplayer to reduce network traffic and subsequent issues.
+- Fix an issue with rotting bales in object storages in multiplayer.
 
 1.0.0.1:
 - Moisture and grade are now visible when harvesting on the fill HUD.
 - Fix sporadic issue where crop would sell for a very low price
-- Fix various multiplayer issues
+- Fix various other multiplayer issues
 - Add safety check to avoid an issue loading a game when there is a bale in a baler
 - Add Czech translation thanks to Kynuska
 - Add Polish translation thanks to KITT3000
