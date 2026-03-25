@@ -15,20 +15,13 @@ function MSInitialClientStateEvent:writeStream(streamId, connection)
     -- Write MoistureSystem data
     g_currentMission.MoistureSystem:writeInitialClientState(streamId, connection)
 
-    -- Write subsystem data
-    if g_currentMission.baleRottingSystem then
-        g_currentMission.baleRottingSystem:writeInitialClientState(streamId, connection)
-    end
+    -- Subsystem data (pile, object moisture, bale rotting) is loaded on-demand
 end
 
 function MSInitialClientStateEvent:readStream(streamId, connection)
     -- Read MoistureSystem data
     g_currentMission.MoistureSystem:readInitialClientState(streamId, connection)
 
-    -- Read subsystem data
-    if g_currentMission.baleRottingSystem then
-        g_currentMission.baleRottingSystem:readInitialClientState(streamId, connection)
-    end
 
     self:run(connection)
 end

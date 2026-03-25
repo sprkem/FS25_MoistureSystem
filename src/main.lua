@@ -86,10 +86,6 @@ function MoistureSystem:loadGUI()
 end
 
 function MoistureSystem:update(dt)
-    if g_currentMission.baleRottingSystem then
-        g_currentMission.baleRottingSystem:resolvePendingObjects()
-    end
-
     if not g_currentMission:getIsServer() then return end
 
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + dt

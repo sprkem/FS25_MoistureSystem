@@ -137,7 +137,8 @@ Journal des modifications :
         <sourceFile filename="src/events/PilePropertyResponseEvent.lua"/>
         <sourceFile filename="src/events/ObjectMoistureRequestEvent.lua"/>
         <sourceFile filename="src/events/ObjectMoistureResponseEvent.lua"/>
-        <sourceFile filename="src/events/BaleRottingUpdateEvent.lua"/>
+        <sourceFile filename="src/events/BaleRottingRequestEvent.lua"/>
+        <sourceFile filename="src/events/BaleRottingResponseEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
         <sourceFile filename="src/handTools/MoistureMeterTool.lua"/>
         <sourceFile filename="src/main.lua"/>

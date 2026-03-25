@@ -7,7 +7,6 @@ BaleRottingSystem = {}
 local BaleRottingSystem_mt = Class(BaleRottingSystem)
 
 BaleRottingSystem.UPDATE_INTERVAL_MS = 1000
-BaleRottingSystem.SYNC_INTERVAL_MS = 3000
 
 -- Bale status constants
 BaleRottingSystem.BALE_STATUS = {
@@ -46,16 +45,13 @@ function BaleRottingSystem.new()
     -- peakExposure tracks highest exposure ever reached (determines rot rate tier)
     -- Persisted in save game (exposure and peakExposure, status computed on update)
     self.baleRainExposureTimes = {}
-    self.pendingBaleRotting = {}
 
     -- Track last update time
     self.timeSinceLastUpdate = 0
 
-    -- Track last sync time (for network updates to clients)
-    self.timeSinceLastSync = 0
-
-    -- Dirty flag to track if bale data has changed since last sync
-    self.isDirty = false
+    -- Client-side on-demand cache tracking
+    self.baleDataTimestamps = {}
+    self.pendingBaleRequests = {}
 
     return self
 end
@@ -120,11 +116,7 @@ function BaleRottingSystem:updateBaleExposure(uniqueId, timescaledDt, isExposedT
             peakExposure = peakExposure,
             status = status
         }
-        self.isDirty = true -- Mark data as changed
     else
-        if self.baleRainExposureTimes[uniqueId] then
-            self.isDirty = true -- Mark data as changed (bale removed)
-        end
         self.baleRainExposureTimes[uniqueId] = nil
     end
 
@@ -151,7 +143,6 @@ function BaleRottingSystem:setBaleInitialExposure(uniqueId, exposureTime)
         peakExposure = cappedExposure,
         status = self.BALE_STATUS.GETTING_WET
     }
-    self.isDirty = true -- Mark data as changed
 end
 
 ---
@@ -164,21 +155,6 @@ function BaleRottingSystem:update(dt)
     -- Check if bale rotting is enabled
     if not g_currentMission.MoistureSystem.settings.baleRotEnabled then
         return
-    end
-
-    -- Accumulate sync timer every frame (not just when update runs)
-    self.timeSinceLastSync = self.timeSinceLastSync + dt
-    if self.timeSinceLastSync >= self.SYNC_INTERVAL_MS then
-        -- Only sync if data has changed since last sync
-        if self.isDirty then
-            local baleCount = 0
-            for _ in pairs(self.baleRainExposureTimes) do
-                baleCount = baleCount + 1
-            end
-            g_client:getServerConnection():sendEvent(BaleRottingUpdateEvent.new(self.baleRainExposureTimes))
-            self.isDirty = false
-        end
-        self.timeSinceLastSync = 0
     end
 
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + dt
@@ -215,8 +191,7 @@ function BaleRottingSystem:update(dt)
         else
             -- Bale no longer exists, remove tracking
             self.baleRainExposureTimes[uniqueId] = nil
-            self.isDirty = true -- Mark data as changed
-        end
+            end
     end
 
     -- Add any untracked rottable bales (if it's raining)
@@ -264,7 +239,6 @@ function BaleRottingSystem:update(dt)
     for i = #balesToDelete, 1, -1 do
         local bale = balesToDelete[i]
         self.baleRainExposureTimes[bale.uniqueId] = nil
-        self.isDirty = true -- Mark data as changed
 
         -- Check if bale is in storage and remove it first
         local storage = MSPlaceableObjectStorageExtension.findStorageForBale(bale)
@@ -387,7 +361,6 @@ function BaleRottingSystem:onBaleDeleted(bale)
     if not self.isServer then return end
     if self.baleRainExposureTimes[bale.uniqueId] then
         self.baleRainExposureTimes[bale.uniqueId] = nil
-        self.isDirty = true -- Mark data as changed
     end
 end
 
@@ -444,79 +417,21 @@ function BaleRottingSystem:loadFromXMLFile(xmlFile, key)
     end
 end
 
----
--- Write bale rotting state for initial client sync
--- @param streamId: Network stream ID
--- @param connection: Network connection
----
-function BaleRottingSystem:writeInitialClientState(streamId, connection)
-    -- Count bales that can be resolved
-    local baleCount = 0
-    for uniqueId, _ in pairs(self.baleRainExposureTimes) do
-        local object = g_currentMission:getObjectByUniqueId(uniqueId)
-        if object ~= nil then
-            baleCount = baleCount + 1
-        end
+-- Request bale rotting data from server (client-side, called by HUD)
+function BaleRottingSystem:ensureBaleDataLoaded(bale)
+    if g_currentMission:getIsServer() then return end
+    if bale == nil or bale.uniqueId == nil then return end
+
+    local uniqueId = bale.uniqueId
+    local ts = self.baleDataTimestamps[uniqueId]
+    if ts ~= nil and g_time - ts < 3000 then return end
+    if self.pendingBaleRequests[uniqueId] then return end
+
+    self.pendingBaleRequests[uniqueId] = true
+    local objectId = NetworkUtil.getObjectId(bale)
+    if objectId ~= nil then
+        g_client:getServerConnection():sendEvent(BaleRottingRequestEvent.new(objectId))
     end
-
-    streamWriteInt32(streamId, baleCount)
-
-    for uniqueId, baleData in pairs(self.baleRainExposureTimes) do
-        local object = g_currentMission:getObjectByUniqueId(uniqueId)
-        if object ~= nil then
-            streamWriteInt32(streamId, NetworkUtil.getObjectId(object))
-            streamWriteInt32(streamId, math.floor(baleData.exposure))
-            streamWriteInt32(streamId, math.floor(baleData.peakExposure))
-        end
-    end
-end
-
----
--- Read bale rotting state for initial client sync
--- @param streamId: Network stream ID
--- @param connection: Network connection
----
-function BaleRottingSystem:readInitialClientState(streamId, connection)
-    self.baleRainExposureTimes = {}
-    self.pendingBaleRotting = {}
-
-    local baleCount = streamReadInt32(streamId)
-
-    for i = 1, baleCount do
-        local objectId = streamReadInt32(streamId)
-        local exposureTime = streamReadInt32(streamId)
-        local peakExposure = streamReadInt32(streamId)
-
-        local baleData = {
-            exposure = exposureTime,
-            peakExposure = peakExposure,
-            status = self.BALE_STATUS.DRYING
-        }
-
-        local object = NetworkUtil.getObject(objectId)
-        if object ~= nil and object.uniqueId ~= nil then
-            self.baleRainExposureTimes[object.uniqueId] = baleData
-        else
-            table.insert(self.pendingBaleRotting, { objectId = objectId, baleData = baleData })
-        end
-    end
-end
-
-function BaleRottingSystem:resolvePendingObjects()
-    if #self.pendingBaleRotting == 0 then
-        return
-    end
-
-    local remaining = {}
-    for _, pending in ipairs(self.pendingBaleRotting) do
-        local object = NetworkUtil.getObject(pending.objectId)
-        if object ~= nil and object.uniqueId ~= nil then
-            self.baleRainExposureTimes[object.uniqueId] = pending.baleData
-        else
-            table.insert(remaining, pending)
-        end
-    end
-    self.pendingBaleRotting = remaining
 end
 
 Bale.delete = Utils.prependedFunction(Bale.delete, function(self)

@@ -423,6 +423,7 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
     -- Show rain exposure time and status if tracked
     local baleRottingSystem = g_currentMission.baleRottingSystem
     if baleRottingSystem ~= nil then
+        baleRottingSystem:ensureBaleDataLoaded(bale)
         local baleData = baleRottingSystem.baleRainExposureTimes[bale.uniqueId]
         if baleData ~= nil and baleData.exposure > 0 then
             -- Only show exposure % if not rotting yet
