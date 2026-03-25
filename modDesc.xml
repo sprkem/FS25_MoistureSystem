@@ -33,8 +33,6 @@ Changelog:
 1.0.0.2:
 - Rework events in multiplayer to reduce network traffic and subsequent issues.
 - Fix an issue with rotting bales in object storages in multiplayer.
-
-1.0.0.1:
 - Moisture and grade are now visible when harvesting on the fill HUD.
 - Fix sporadic issue where crop would sell for a very low price
 - Fix various other multiplayer issues
@@ -65,7 +63,9 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Änderungsprotokoll:
 
-1.0.0.1:
+1.0.0.2:
+- Überarbeitung der Ereignisse im Multiplayer zur Reduzierung des Netzwerkverkehrs und daraus resultierender Probleme.
+- Behebung eines Problems mit verrottenden Ballen in Objektlagern im Multiplayer.
 - Feuchtigkeit und Qualitätsstufe sind jetzt beim Ernten im Füllstand-HUD sichtbar.
 - Sporadisches Problem behoben, bei dem Ernte zu einem sehr niedrigen Preis verkauft wurde
 - Verschiedene Multiplayer-Probleme behoben
@@ -96,7 +96,9 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Journal des modifications :
 
-1.0.0.1 :
+1.0.0.2 :
+- Refonte des événements en multijoueur pour réduire le trafic réseau et les problèmes associés.
+- Correction d'un problème avec les balles en décomposition dans les stockages d'objets en multijoueur.
 - L'humidité et la qualité sont désormais visibles lors de la récolte sur le HUD de remplissage.
 - Correction d'un problème sporadique où les récoltes se vendaient à un prix très bas
 - Correction de divers problèmes multijoueur
