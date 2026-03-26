@@ -10,6 +10,9 @@ function MoistureSystem:loadMap()
     self.currentMoisturePercent = 0
     self.timeSinceLastUpdate = 0
     self.updateInterval = 500
+    self.syncInterval = 2000
+    self.timeSinceLastSync = 0
+    self.moistureDirty = false
     self.missionStarted = false
 
     self.settings = {
@@ -29,7 +32,8 @@ function MoistureSystem:loadMap()
     g_currentMission.baleRottingSystem = BaleRottingSystem.new()
 
     self.objectMoisture = {}
-    self.pendingObjectMoisture = {}
+    self.objectMoistureTimestamps = {}
+    self.pendingObjectRequests = {}
 
     -- Initialize LRU cache for getMoistureAtPosition
     self.moistureCache = {}
@@ -56,7 +60,10 @@ function MoistureSystem:consoleCommandSetMoisture(newMoisture)
         return "Usage: msSetMoisture value[1-100]"
     end
     newMoistureNum = math.max(1, math.min(100, newMoistureNum)) / 100
-    g_client:getServerConnection():sendEvent(MoistureUpdateEvent.new(newMoistureNum))
+    self.currentMoisturePercent = newMoistureNum
+    self.moistureCache = {}
+    self.moistureCacheOrder = {}
+    self.moistureDirty = true
     return string.format("New moisture is %.3f", newMoistureNum)
 end
 
@@ -79,12 +86,6 @@ function MoistureSystem:loadGUI()
 end
 
 function MoistureSystem:update(dt)
-    -- Resolve pending objects on client (runs on both client and server)
-    self:resolvePendingObjects()
-    if g_currentMission.baleRottingSystem then
-        g_currentMission.baleRottingSystem:resolvePendingObjects()
-    end
-
     if not g_currentMission:getIsServer() then return end
 
     self.timeSinceLastUpdate = self.timeSinceLastUpdate + dt
@@ -98,6 +99,13 @@ function MoistureSystem:update(dt)
     -- Update bale rotting system
     if g_currentMission.baleRottingSystem then
         g_currentMission.baleRottingSystem:update(dt)
+    end
+
+    -- Sync to clients periodically (batched)
+    self.timeSinceLastSync = self.timeSinceLastSync + dt
+    if self.timeSinceLastSync >= self.syncInterval then
+        self:syncToClients()
+        self.timeSinceLastSync = 0
     end
 end
 
@@ -178,9 +186,11 @@ function MoistureSystem:adjustMoisture(delta)
     -- Apply delta and clamp to 80% of range
     local newMoisture = math.max(innerMin, math.min(innerMax, self.currentMoisturePercent + delta))
 
-    -- Only send event if value changed
     if newMoisture ~= self.currentMoisturePercent then
-        g_client:getServerConnection():sendEvent(MoistureUpdateEvent.new(newMoisture))
+        self.currentMoisturePercent = newMoisture
+        self.moistureCache = {}
+        self.moistureCacheOrder = {}
+        self.moistureDirty = true
     end
 end
 
@@ -393,19 +403,13 @@ function MoistureSystem:setObjectMoisture(uniqueId, fillType, moisture)
     end
     self.objectMoisture[uniqueId][fillTypeName] = self:hasFillType(uniqueId, fillType) and moisture or nil
 
-    -- Then sync to clients
-    g_client:getServerConnection():sendEvent(ObjectMoistureUpdateEvent.new(uniqueId, fillTypeName, moisture))
-
     -- Check all other stored fill types and clear any that are now empty
     if self.objectMoisture[uniqueId] then
         for storedFillTypeName, storedMoisture in pairs(self.objectMoisture[uniqueId]) do
-            -- Skip the one we just set and any already nil
             if storedFillTypeName ~= fillTypeName and storedMoisture ~= nil then
                 local storedFillType = g_fillTypeManager:getFillTypeIndexByName(storedFillTypeName)
                 if storedFillType and not self:hasFillType(uniqueId, storedFillType) then
-                    -- Object no longer has this fillType, clear it
                     self.objectMoisture[uniqueId][storedFillTypeName] = nil
-                    g_client:getServerConnection():sendEvent(ObjectMoistureUpdateEvent.new(uniqueId, storedFillTypeName, nil))
                 end
             end
         end
@@ -788,6 +792,32 @@ function MoistureSystem:saveToXmlFile()
     delete(xmlFile)
 end
 
+function MoistureSystem:syncToClients()
+    if not g_currentMission:getIsServer() then return end
+
+    if self.moistureDirty then
+        g_server:broadcastEvent(MoistureUpdateEvent.new(self.currentMoisturePercent))
+        self.moistureDirty = false
+    end
+end
+
+-- Request object moisture data from server (client-side, called by HUD extensions)
+function MoistureSystem:ensureObjectMoistureLoaded(object)
+    if g_currentMission:getIsServer() then return end
+    if object == nil or object.uniqueId == nil then return end
+
+    local uniqueId = object.uniqueId
+    local ts = self.objectMoistureTimestamps[uniqueId]
+    if ts ~= nil and g_time - ts < 3000 then return end
+    if self.pendingObjectRequests[uniqueId] then return end
+
+    self.pendingObjectRequests[uniqueId] = true
+    local objectId = NetworkUtil.getObjectId(object)
+    if objectId ~= nil then
+        g_client:getServerConnection():sendEvent(ObjectMoistureRequestEvent.new(objectId))
+    end
+end
+
 function MoistureSystem:sendInitialClientState(connection, user, farm)
     connection:sendEvent(MSInitialClientStateEvent.new())
 end
@@ -811,34 +841,6 @@ function MoistureSystem:writeInitialClientState(streamId, connection)
     streamWriteFloat32(streamId, self.settings.baleExposureDecayRate)
     streamWriteBool(streamId, self.settings.showFieldMoisture)
     streamWriteInt32(streamId, self.settings.moistureMeterReporting)
-
-    -- Write object moisture data (only objects that can be resolved)
-    local objectCount = 0
-    for uniqueId, _ in pairs(self.objectMoisture) do
-        local object = g_currentMission:getObjectByUniqueId(uniqueId)
-        if object ~= nil then
-            objectCount = objectCount + 1
-        end
-    end
-    streamWriteInt32(streamId, objectCount)
-
-    for uniqueId, fillTypes in pairs(self.objectMoisture) do
-        local object = g_currentMission:getObjectByUniqueId(uniqueId)
-        if object ~= nil then
-            streamWriteInt32(streamId, NetworkUtil.getObjectId(object))
-
-            local fillTypeCount = 0
-            for _ in pairs(fillTypes) do
-                fillTypeCount = fillTypeCount + 1
-            end
-            streamWriteInt32(streamId, fillTypeCount)
-
-            for fillTypeName, moisture in pairs(fillTypes) do
-                streamWriteString(streamId, fillTypeName)
-                streamWriteFloat32(streamId, moisture)
-            end
-        end
-    end
 end
 
 ---
@@ -861,51 +863,11 @@ function MoistureSystem:readInitialClientState(streamId, connection)
     self.settings.showFieldMoisture = streamReadBool(streamId)
     self.settings.moistureMeterReporting = streamReadInt32(streamId)
 
-    -- Read object moisture data
-    self.objectMoisture = {}
-    self.pendingObjectMoisture = {}
-    local objectCount = streamReadInt32(streamId)
-
-    for i = 1, objectCount do
-        local objectId = streamReadInt32(streamId)
-        local fillTypeCount = streamReadInt32(streamId)
-
-        local fillTypes = {}
-        for j = 1, fillTypeCount do
-            local fillTypeName = streamReadString(streamId)
-            local moisture = streamReadFloat32(streamId)
-            fillTypes[fillTypeName] = moisture
-        end
-
-        local object = NetworkUtil.getObject(objectId)
-        if object ~= nil and object.uniqueId ~= nil then
-            self.objectMoisture[object.uniqueId] = fillTypes
-        else
-            table.insert(self.pendingObjectMoisture, { objectId = objectId, fillTypes = fillTypes })
-        end
-    end
-
     -- Clear moisture cache since we just got new data
     self.moistureCache = {}
     self.moistureCacheOrder = {}
 end
 
-function MoistureSystem:resolvePendingObjects()
-    if #self.pendingObjectMoisture == 0 then
-        return
-    end
-
-    local remaining = {}
-    for _, pending in ipairs(self.pendingObjectMoisture) do
-        local object = NetworkUtil.getObject(pending.objectId)
-        if object ~= nil and object.uniqueId ~= nil then
-            self.objectMoisture[object.uniqueId] = pending.fillTypes
-        else
-            table.insert(remaining, pending)
-        end
-    end
-    self.pendingObjectMoisture = remaining
-end
 
 function MoistureSystem.ShowMoistureGUI()
     if g_gui.currentGui == nil then

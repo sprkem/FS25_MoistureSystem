@@ -78,6 +78,10 @@ function GroundPropertyTracker.new()
     -- Key: getGridKey(gridX, gridZ, fillType), Value: cycles remaining
     self.windrowerPickedCells = {}
 
+    -- Client-side on-demand cache for pile moisture
+    self.pileCache = {}
+    self.pendingPileRequests = {}
+
     return self
 end
 
@@ -121,6 +125,30 @@ function GroundPropertyTracker:delete()
     self.strawPiles = {}
     self.grassRotAccumulators = {}
     self.strawRotAccumulators = {}
+end
+
+-- Update local pile storage (server-side only)
+-- Merges properties into existing pile or creates new entry
+function GroundPropertyTracker:queuePileUpdate(key, properties, fillTypeIndex, gridX, gridZ)
+    local storage = self:getStorageForFillType(fillTypeIndex)
+
+    if storage[key] then
+        -- Merge properties into existing pile (preserves server-only state like rainExposure)
+        for propKey, propValue in pairs(properties) do
+            storage[key].properties[propKey] = propValue
+        end
+    else
+        -- Create new pile entry
+        storage[key] = {
+            properties = {},
+            fillType = fillTypeIndex,
+            gridX = gridX,
+            gridZ = gridZ
+        }
+        for propKey, propValue in pairs(properties) do
+            storage[key].properties[propKey] = propValue
+        end
+    end
 end
 
 -- Calculate overlap area and dimensions between cell and bounding box
@@ -244,13 +272,9 @@ function GroundPropertyTracker:addPile(sx, sz, wx, wz, hx, hz, fillType, volume,
                 end
             end
 
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, newProperties, fillType, cell.gridX, cell.gridZ
-            ))
+            self:queuePileUpdate(key, newProperties, fillType, cell.gridX, cell.gridZ)
         else
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, properties or {}, fillType, cell.gridX, cell.gridZ
-            ))
+            self:queuePileUpdate(key, properties or {}, fillType, cell.gridX, cell.gridZ)
         end
     end
 end
@@ -428,10 +452,7 @@ function GroundPropertyTracker:convertGrassToHayInCell(gridX, gridZ, grassFillTy
             local hayKey = self:getGridKey(gridX, gridZ, hayFillType)
             local properties = { moisture = grassMoisture }
 
-            -- Send event to create pile on server and clients
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                hayKey, properties, hayFillType, gridX, gridZ
-            ))
+            self:queuePileUpdate(hayKey, properties, hayFillType, gridX, gridZ)
         end
 
         -- Check for remaining grass content and cleanup
@@ -476,10 +497,7 @@ function GroundPropertyTracker:convertHayToGrassInCell(gridX, gridZ, hayFillType
             local grassKey = self:getGridKey(gridX, gridZ, grassFillType)
             local properties = { moisture = hayMoisture }
 
-            -- Send event to create pile on server and clients
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                grassKey, properties, grassFillType, gridX, gridZ
-            ))
+            self:queuePileUpdate(grassKey, properties, grassFillType, gridX, gridZ)
         end
 
         -- Check for remaining hay content and cleanup
@@ -593,8 +611,7 @@ function GroundPropertyTracker:processTeddedCells(teddedCellsThisCycle, processe
 
                         local properties = { moisture = teddedMoisture }
 
-                        g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                            key, properties, fromFillType, gridX, gridZ))
+                        self:queuePileUpdate(key, properties, fromFillType, gridX, gridZ)
 
                         processedThisCycle[gridKey] = true
                         self.teddedGridCellsCooldown[gridKey] = GroundPropertyTracker.TEDDED_COOLDOWN_CYCLES
@@ -632,10 +649,9 @@ function GroundPropertyTracker:applyMoistureToGrassPiles(moistureDelta, teddedCe
                 self.hayCells[gridKey] = 10
             end
 
-            local updatedProperties = { moisture = newMoisture }
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
-            ))
+            if newMoisture ~= pile.properties.moisture then
+                self:queuePileUpdate(key, { moisture = newMoisture }, pile.fillType, pile.gridX, pile.gridZ)
+            end
         end
     end
 end
@@ -819,11 +835,7 @@ function GroundPropertyTracker:processWindrowerPendingDrops()
                     finalMoisture = avgMoisture
                 end
 
-                -- Send event to create/update pile on server and clients
-                local properties = { moisture = finalMoisture }
-                g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                    key, properties, pending.fillType, pending.gridX, pending.gridZ
-                ))
+                self:queuePileUpdate(key, { moisture = finalMoisture }, pending.fillType, pending.gridX, pending.gridZ)
             end
 
             -- Remove from pending
@@ -871,11 +883,9 @@ function GroundPropertyTracker:updateHayMoisture(moistureDelta)
                 self.grassCells[gridKey] = 10
             end
 
-            -- Send event to update pile on server and clients
-            local updatedProperties = { moisture = newMoisture }
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
-            ))
+            if newMoisture ~= pile.properties.moisture then
+                self:queuePileUpdate(key, { moisture = newMoisture }, pile.fillType, pile.gridX, pile.gridZ)
+            end
         end
     end
 
@@ -915,11 +925,9 @@ function GroundPropertyTracker:updateStrawMoisture(moistureDelta, dt)
             local newMoisture = pile.properties.moisture + moistureDelta
             newMoisture = math.max(0, newMoisture)
 
-            -- Send event to update pile on server and clients
-            local updatedProperties = { moisture = newMoisture }
-            g_client:getServerConnection():sendEvent(PilePropertyUpdateEvent.new(
-                key, updatedProperties, pile.fillType, pile.gridX, pile.gridZ
-            ))
+            if newMoisture ~= pile.properties.moisture then
+                self:queuePileUpdate(key, { moisture = newMoisture }, pile.fillType, pile.gridX, pile.gridZ)
+            end
         end
     end
 
@@ -1052,17 +1060,35 @@ function GroundPropertyTracker:checkPileHasContent(gridX, gridZ, fillType)
 end
 
 -- Get pile properties at a position
+-- On server: direct storage lookup
+-- On client: on-demand request with local cache
 function GroundPropertyTracker:getPilePropertiesAtPosition(x, z, fillType)
-    local storage = self:getStorageForFillType(fillType)
-
     local gridX, gridZ = self:getGridPosition(x, z)
     local key = self:getGridKey(gridX, gridZ, fillType)
-    local pile = storage[key]
 
+    if not self.isServer then
+        -- Client: check cache, request from server if stale/missing
+        local cached = self.pileCache[key]
+        local isFresh = cached ~= nil and g_time - cached.timestamp < 3000
+
+        if not isFresh and not self.pendingPileRequests[key] then
+            self.pendingPileRequests[key] = true
+            g_client:getServerConnection():sendEvent(PilePropertyRequestEvent.new(gridX, gridZ, fillType))
+        end
+
+        -- Return cached data (may be stale but avoids HUD flicker)
+        if cached ~= nil and cached.moisture ~= nil then
+            return { moisture = cached.moisture }
+        end
+        return nil
+    end
+
+    -- Server: direct storage lookup
+    local storage = self:getStorageForFillType(fillType)
+    local pile = storage[key]
     if pile then
         return pile.properties
     end
-
     return nil
 end
 

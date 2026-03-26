@@ -37,6 +37,7 @@ function MSPlayerHUDExtension:getFillLevelInformationAppended(_, display)
         return
     end
 
+    moistureSystem:ensureObjectMoistureLoaded(self)
     local objectData = moistureSystem.objectMoisture[self.uniqueId]
     if objectData == nil then
         return
@@ -272,6 +273,7 @@ function MSPlayerHUDExtension:showObjectMoistureInfo()
         return
     end
 
+    moistureSystem:ensureObjectMoistureLoaded(self.object)
     local objectData = moistureSystem.objectMoisture[self.object.uniqueId]
     if objectData == nil then
         return
@@ -332,6 +334,7 @@ function MSPlayerHUDExtension:showVehicleInfo(vehicle)
     end
 
     local moistureSystem = g_currentMission.MoistureSystem
+    moistureSystem:ensureObjectMoistureLoaded(vehicle)
     local objectData = moistureSystem.objectMoisture[vehicle.uniqueId]
     if objectData == nil then
         return
@@ -374,6 +377,7 @@ function MSPlayerHUDExtension:showPalletInfo(pallet)
         return
     end
 
+    moistureSystem:ensureObjectMoistureLoaded(pallet)
     local objectData = moistureSystem.objectMoisture[pallet.uniqueId]
     if objectData == nil then
         return
@@ -419,6 +423,7 @@ function MSPlayerHUDExtension:showBaleInfo(bale)
     -- Show rain exposure time and status if tracked
     local baleRottingSystem = g_currentMission.baleRottingSystem
     if baleRottingSystem ~= nil then
+        baleRottingSystem:ensureBaleDataLoaded(bale)
         local baleData = baleRottingSystem.baleRainExposureTimes[bale.uniqueId]
         if baleData ~= nil and baleData.exposure > 0 then
             -- Only show exposure % if not rotting yet

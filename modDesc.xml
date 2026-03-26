@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="107">
     <author>Ozz</author>
-    <version>1.0.0.1</version>
+    <version>1.0.0.2</version>
     <iconFilename>icon_MoistureSystem.dds</iconFilename>
     <title>
         <en>Moisture System</en>
@@ -30,10 +30,12 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Changelog:
 
-1.0.0.1:
+1.0.0.2:
+- Rework events in multiplayer to reduce network traffic and subsequent issues.
+- Fix an issue with rotting bales in object storages in multiplayer.
 - Moisture and grade are now visible when harvesting on the fill HUD.
 - Fix sporadic issue where crop would sell for a very low price
-- Fix various multiplayer issues
+- Fix various other multiplayer issues
 - Add safety check to avoid an issue loading a game when there is a bale in a baler
 - Add Czech translation thanks to Kynuska
 - Add Polish translation thanks to KITT3000
@@ -61,7 +63,9 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Änderungsprotokoll:
 
-1.0.0.1:
+1.0.0.2:
+- Überarbeitung der Ereignisse im Multiplayer zur Reduzierung des Netzwerkverkehrs und daraus resultierender Probleme.
+- Behebung eines Problems mit verrottenden Ballen in Objektlagern im Multiplayer.
 - Feuchtigkeit und Qualitätsstufe sind jetzt beim Ernten im Füllstand-HUD sichtbar.
 - Sporadisches Problem behoben, bei dem Ernte zu einem sehr niedrigen Preis verkauft wurde
 - Verschiedene Multiplayer-Probleme behoben
@@ -92,7 +96,9 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Journal des modifications :
 
-1.0.0.1 :
+1.0.0.2 :
+- Refonte des événements en multijoueur pour réduire le trafic réseau et les problèmes associés.
+- Correction d'un problème avec les balles en décomposition dans les stockages d'objets en multijoueur.
 - L'humidité et la qualité sont désormais visibles lors de la récolte sur le HUD de remplissage.
 - Correction d'un problème sporadique où les récoltes se vendaient à un prix très bas
 - Correction de divers problèmes multijoueur
@@ -130,9 +136,12 @@ Journal des modifications :
         <sourceFile filename="src/events/InitialClientStateEvent.lua"/>
         <sourceFile filename="src/events/MoistureSettingsEvent.lua"/>
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
-        <sourceFile filename="src/events/ObjectMoistureUpdateEvent.lua"/>
-        <sourceFile filename="src/events/PilePropertyUpdateEvent.lua"/>
-        <sourceFile filename="src/events/BaleRottingUpdateEvent.lua"/>
+        <sourceFile filename="src/events/PilePropertyRequestEvent.lua"/>
+        <sourceFile filename="src/events/PilePropertyResponseEvent.lua"/>
+        <sourceFile filename="src/events/ObjectMoistureRequestEvent.lua"/>
+        <sourceFile filename="src/events/ObjectMoistureResponseEvent.lua"/>
+        <sourceFile filename="src/events/BaleRottingRequestEvent.lua"/>
+        <sourceFile filename="src/events/BaleRottingResponseEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
         <sourceFile filename="src/handTools/MoistureMeterTool.lua"/>
         <sourceFile filename="src/main.lua"/>

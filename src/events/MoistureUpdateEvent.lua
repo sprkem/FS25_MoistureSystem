@@ -24,10 +24,6 @@ function MoistureUpdateEvent:readStream(streamId, connection)
 end
 
 function MoistureUpdateEvent:run(connection)
-    if not connection:getIsServer() then
-        g_server:broadcastEvent(MoistureUpdateEvent.new(self.moisturePercent))
-    end
-
     g_currentMission.MoistureSystem.currentMoisturePercent = self.moisturePercent
     g_currentMission.MoistureSystem.moistureCache = {}
     g_currentMission.MoistureSystem.moistureCacheOrder = {}
