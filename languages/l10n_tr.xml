@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+	<translationContributors/>
+	<texts>
+		<!-- Settings Section -->
+		<text name="setting_moisture_section" text="Nem Sistemi"/>
+
+		<!-- Settings -->
+		<text name="setting_moisture_environment" text="Hava Durumu Ortamı"/>
+		<text name="setting_moisture_environment_tooltip" text="Nem hesaplamaları için iklim tipini ayarlar"/>
+		<text name="setting_moisture_environment_dry" text="KURU"/>
+		<text name="setting_moisture_environment_normal" text="NORMAL"/>
+		<text name="setting_moisture_environment_wet" text="ISLAK"/>
+		<text name="setting_moisture_moistureLossMultiplier" text="Nem Kaybı Çarpanı"/>
+		<text name="setting_moisture_moistureLossMultiplier_tooltip" text="Nem kaybı hızını kontrol eder (1-10)"/>
+		<text name="setting_moisture_moistureGainMultiplier" text="Nem Kazanım Çarpanı"/>
+		<text name="setting_moisture_moistureGainMultiplier_tooltip" text="Yağmurdan kaynaklanan nem kazanımı hızını kontrol eder (1-10)"/>
+		<text name="setting_moisture_teddingMoistureReduction" text="Ot Çevirme Nem Düşüşü"/>
+		<text name="setting_moisture_teddingMoistureReduction_tooltip" text="Her ot çevirme geçişinde düşen nem miktarı (%1-5)"/>
+		<text name="setting_moisture_baleRotEnabled" text="Balya Çürümesi"/>
+		<text name="setting_moisture_baleRotEnabled_tooltip" text="Yağmur/kar sırasında balya çürümesini etkinleştirin. Sarılmış balyalar ve barınak altındaki balyalar korunur."/>
+		<text name="setting_moisture_baleRotRate" text="Balya Çürüme Hızı"/>
+		<text name="setting_moisture_baleRotRate_tooltip" text="Balya hacmi kaybı hızı çarpanı. Daha yüksek değerler daha hızlı çürüme anlamına gelir."/>
+		<text name="setting_moisture_baleExposureDecayRate" text="Balya Kuruma Hızı"/>
+		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="Yağmur durduktan sonra balyaların ne kadar hızlı kuruduğu. Daha düşük = daha yavaş kuruma."/>
+		<text name="setting_moisture_showFieldMoisture" text="Tarla Nemini Göster"/>
+		<text name="setting_moisture_showFieldMoisture_tooltip" text="Tarla bilgisi HUD'unda bulunduğunuz konumdaki mevcut nem seviyesini gösterin."/>
+		<text name="setting_moisture_moistureMeterReporting" text="Nem Ölçer Bildirimi"/>
+		<text name="setting_moisture_moistureMeterReporting_tooltip" text="Nem ölçerin okumaları nasıl gösterdiği."/>
+		<text name="setting_moisture_moistureMeterReporting_blinking" text="Yanıp Sönen Uyarı"/>
+		<text name="setting_moisture_moistureMeterReporting_notification" text="Bildirim"/>
+
+		<!-- Generic On/Off -->
+		<text name="setting_setting_off" text="KAPALI"/>
+		<text name="setting_setting_on" text="AÇIK"/>
+
+		<!-- Multiplayer Permission -->
+		<text name="permission_moisture_moistureSettings" text="Nem Ayarlarını Değiştir"/>
+
+		<!-- Input Bindings -->
+		<text name="input_MOISTURE_MENU" text="Nem Menüsünü Aç"/>
+
+		<!-- HUD Display -->
+		<text name="moistureSystem_fieldInfo" text="Tarla Nemi"/>
+		<text name="moistureSystem_moisture" text="Nem"/>
+		<text name="moistureSystem_range" text="Beklenen Aralık"/>
+		<text name="moistureSystem_rainExposure" text="Yağmura Maruz Kalma"/>
+		<text name="moistureSystem_baleStatus" text="Durum"/>
+		<text name="moistureSystem_baleGettingWet" text="Islanıyor"/>
+		<text name="moistureSystem_baleRottingSlowly" text="Yavaşça Çürüyor"/>
+		<text name="moistureSystem_baleRotting" text="Çürüyor"/>
+		<text name="moistureSystem_baleRottingQuickly" text="Hızla Çürüyor"/>
+		<text name="moistureSystem_baleDrying" text="Kuruyor"/>
+
+		<!-- GUI -->
+		<text name="moistureSystem_gui_cropGradeValues" text="Mahsul Derece Değerleri"/>
+		<text name="moistureSystem_gui_description" text="Aşağıdaki veriler desteklenen her mahsul için nem derecelendirmesini gösterir. Derece için nem aralığı gösterilir ve o derece için fiyat çarpanı parantez içinde gösterilir."/>
+		<text name="moistureSystem_gui_cropName" text="Mahsul Adı"/>
+		<text name="moistureSystem_gui_gradeA" text="Derece A"/>
+		<text name="moistureSystem_gui_gradeB" text="Derece B"/>
+		<text name="moistureSystem_gui_gradeC" text="Derece C"/>
+		<text name="moistureSystem_gui_gradeD" text="Derece D"/>
+
+		<!-- Calendar GUI -->
+		<text name="moistureSystem_gui_moistureCalendar" text="Nem Takvimi"/>
+		<text name="moistureSystem_gui_currentEnvironment" text="Mevcut Ortam"/>
+		<text name="moistureSystem_gui_calendarDescription" text="Aşağıdaki takvim, mevcut ortam ayarınıza göre her ay için beklenen nem aralığını gösterir. Nem seviyeleri yağış, sıcaklık ve mevsimden etkilenir."/>
+
+		<!-- Hand Tool -->
+		<text name="moistureSystem_moistureMeter" text="Nem Ölçer"/>
+		<text name="moistureSystem_moistureMeterFunction" text="Tarla nem seviyelerini ölçün"/>
+		<text name="moistureSystem_measureLocation" text="Nemi Ölç"/>
+		<text name="moistureSystem_groundMoistureReading" text="Zemin Nemi: %.2f%%"/>
+
+		<!-- Help Menu -->
+		<text name="help_moisture_title" text="Nem Sistemi"/>
+
+		<!-- Overview Page -->
+		<text name="help_moisture_overview_title" text="Genel Bakış"/>
+		<text name="help_moisture_overview_1" text="Nem Sistemi modu, çiftliğiniz genelinde mahsulleri, çimleri ve balyaları etkileyen dinamik nem seviyeleri sunar. Nem, arazi yüksekliğine, hava koşullarına ve günün saatine göre değişir."/>
+		<text name="help_moisture_overview_2" text="Bu, hasat zamanlaması ve depolama yönetiminin önemli olduğu daha gerçekçi bir çiftçilik deneyimi yaratır. Ayrıntılı mahsul derece tablolarını ve nem takvimlerini görüntülemek için Nem Menüsünü (Shift+M) kullanın."/>
+
+		<!-- Field Moisture Page -->
+		<text name="help_moisture_field_title" text="Tarla Nemi"/>
+		<text name="help_moisture_field_1" text="Tarla nemi, çeşitli faktörlere bağlı olarak çiftliğinizde değişiklik gösterir: Arazi yüksekliği (daha alçak alanlar daha ıslaktır), hava koşulları (yağmur ve kar nemi artırır), sıcaklık (daha sıcak hava kurumayı hızlandırır) ve günün saati (nem gündüzleri daha fazla azalır)."/>
+		<text name="help_moisture_field_2" text="Aylık nem aralıkları, seçtiğiniz ortam tipine (Kuru/Normal/Islak) göre yıl boyunca değişir. Nem seviyelerini izlemek için nem ölçer el aletini kullanın veya ayarlardan HUD ekranını etkinleştirin."/>
+
+		<!-- Crop Grading Page -->
+		<text name="help_moisture_grading_title" text="Mahsul Kalitesi ve Derecelendirme"/>
+		<text name="help_moisture_grading_1" text="Hasat edilen mahsuller nem içeriklerine göre A'dan D'ye kadar derecelendirilir. Derece A, tam fiyatla optimum nemdir, Derece B, biraz indirimli fiyatla iyi nemdir, Derece C, orta derecede indirimli fiyatla makul nemdir ve Derece D, önemli ölçüde indirimli fiyatla zayıf nemdir."/>
+		<text name="help_moisture_grading_2" text="Her mahsul türünün kendi ideal nem aralığı vardır. Kârınızı en üst düzeye çıkarmak için doğru zamanda hasat yapın! Tarladan gelen nem, hasat edilen malzemenize aktarılır ve araçlar, yerdeki yığınlar ve depolama yoluyla takip edilir."/>
+		<text name="help_moisture_grading_3" text="Nem Menüsünde (Shift+M) desteklenen tüm mahsuller için ayrıntılı derece aralıklarını görüntüleyin. Mahsuller arasında buğday, arpa, yulaf, mısır, kanola, ayçiçeği, soya fasulyesi ve daha fazlası bulunur."/>
+
+		<!-- Grass & Hay Page -->
+		<text name="help_moisture_grass_title" text="Ot Çevirme ve Saman"/>
+		<text name="help_moisture_grass_1" text="Gerçekçi ot kurutma mekanikleriyle saman üretimini yönetin. Otu yaymak ve havalandırmak için bir ot çevirici kullanın, böylece nem içeriğini azaltın. Daha hızlı kuruma için birden fazla kez çevirebilirsiniz! Hava durumu kurumayı etkiler - güneş ışığı onu hızlandırırken yağmur nemi artırır."/>
+		<text name="help_moisture_grass_2" text="Ot yeterince kuruduğunda (%7 nemin altı), otomatik olarak samana dönüşür. Saman tekrar çok ıslanırsa (%7 nemin üstü), tekrar ota dönüşür."/>
+		<text name="help_moisture_grass_3" text="Ot yığınları ıslak havalarda yerde bırakıldığında yağmura maruz kalma süresi biriktirir. Yeterli maruziyetten sonra ot çürümeye başlar ve yavaş yavaş hacim kaybeder. Kayıpları önlemek için otunuzu derhal toplayın veya balyalayın."/>
+
+		<!-- Ground Rot Page -->
+		<text name="help_moisture_groundrot_title" text="Yer Malzemesi Çürümesi"/>
+		<text name="help_moisture_groundrot_1" text="Yerde bırakılan hem ot hem de saman yığınları yağmura maruziyetini izler. Yığınlar bozulma başlamadan önce bir miktar yağmura dayanabilir (hoşgörü süresi), ancak malzeme yağmura ne kadar uzun süre maruz kalırsa o kadar hızlı çürür."/>
+		<text name="help_moisture_groundrot_2" text="Yağmur durduğunda yığınlar yavaşça kurur, ancak çürüme başladığında devam eder. Çürüyen malzeme yavaş yavaş kaybolur ve hacim kaybeder. Özellikle kötü havalardan önce kayıpları önlemek için samanınızı ve otunuzu derhal toplayın veya balyalayın."/>
+
+		<!-- Bales Page -->
+		<text name="help_moisture_bales_title" text="Balya Yönetimi"/>
+		<text name="help_moisture_bales_1" text="Hava koşullarına maruz bırakılan balyalar, yağışlı havalarda üzeri örtülmediğinde yavaş yavaş yağmura maruz kalma süresi biriktirir. Balyalar çürüme başlamadan önce bir miktar maruziyete dayanabilir - bu ilk aşamaya 'Islanıyor' denir."/>
+		<text name="help_moisture_bales_2" text="Hoşgörü süresinden sonra balyalar aşamalı olarak çürüme durumlarına girer: Yavaşça Çürüyor, Çürüyor ve Hızla Çürüyor. Balyalar geçmişte ne kadar uzun süre maruz kalmışsa o kadar hızlı çürürler. Yağmur durduğunda balyalar yavaşça kurur, ancak çürüme başladığında kurtarılamazlar ve yavaş yavaş hacim kaybederler."/>
+		<text name="help_moisture_bales_3" text="Koruma: Sarılmış balyalar ve barınak altında saklanan balyalar hava koşullarından korunur. Kayıpları önlemek için balyaları iç mekanlarda saklayın, sarın veya uygun şekilde satın."/>
+
+		<!-- Moisture Meter Page -->
+		<text name="help_moisture_meter_title" text="Nem Ölçer Kullanımı"/>
+		<text name="help_moisture_meter_1" text="Nem ölçer, mağazanın El Aletleri bölümünde bulunan bir el aletidir. Kullanmak için: Nem ölçeri satın alın, el aleti menünüzden donatın, ardından bulunduğunuz konumda nem okuması almak için işlem düğmesini 4 saniye basılı tutun."/>
+		<text name="help_moisture_meter_2" text="Alternatif olarak, el aletini kullanmadan tarla bilgisi HUD'unda nemi görmek için oyun ayarlarından 'Tarla Nemini Göster'i etkinleştirebilirsiniz. Bu, ekipmanı çalıştırırken hızlı kontroller için kullanışlıdır."/>
+
+		<!-- Settings Page -->
+		<text name="help_moisture_settings_title" text="Yapılandırma"/>
+		<text name="help_moisture_settings_1" text="Oyun ayarlarından üç iklim ön ayarı arasından seçim yapın: Kuru (daha düşük nem seviyeleri), Normal (dengeli, varsayılan) veya Islak (daha yüksek nem seviyeleri). Her ön ayar yıl boyunca aylık nem aralıklarını etkiler."/>
+		<text name="help_moisture_settings_2" text="Ayarlanabilir ayarlarla davranışı ince ayarlayın: Nem Kaybı/Kazanım Çarpanları kuruma ve ıslanma hızını kontrol eder, Ot Çevirme Nem Düşüşü geçiş başına kurumayı ayarlar ve Balya Çürümesi ayarları balyaların bozulup bozulmadığını/ne kadar hızlı bozulduğunu kontrol eder."/>
+		<text name="help_moisture_settings_3" text="Diğer ayarlar arasında Balya Hoşgörü Süresi (çürümeden önceki yağmur toleransı), Balya Kuruma Hızı (iyileşme hızı), Tarla Nemi Göstergesi geçişi ve Nem Ölçer Bildirim stili bulunur. Çok oyunculuda, bu ayarları sunucu sahibi/yönetici kontrol eder."/>
+	</texts>
+</l10n>
