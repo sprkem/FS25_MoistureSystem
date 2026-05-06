@@ -197,6 +197,33 @@ local dataDefinitions = {
         { lower = 0.15, upper = 0.24, grade = CropValueMap.Grades.B, multiplier = 0.90 },
         { lower = 0.24, upper = 0.27, grade = CropValueMap.Grades.C, multiplier = 0.77 },
         { lower = 0.27, upper = 1.00, grade = CropValueMap.Grades.D, multiplier = 0.60 }
+    },
+    ["BEANS"] = {
+        { lower = 0.00, upper = 0.08, grade = CropValueMap.Grades.D, multiplier = 0.60 },
+        { lower = 0.08, upper = 0.10, grade = CropValueMap.Grades.C, multiplier = 0.77 },
+        { lower = 0.10, upper = 0.13, grade = CropValueMap.Grades.B, multiplier = 0.90 },
+        { lower = 0.13, upper = 0.15, grade = CropValueMap.Grades.A, multiplier = 1.0 },
+        { lower = 0.15, upper = 0.18, grade = CropValueMap.Grades.B, multiplier = 0.90 },
+        { lower = 0.18, upper = 0.21, grade = CropValueMap.Grades.C, multiplier = 0.77 },
+        { lower = 0.21, upper = 1.00, grade = CropValueMap.Grades.D, multiplier = 0.60 }
+    },
+    ["BUCKWHEAT"] = {
+        { lower = 0.00, upper = 0.08, grade = CropValueMap.Grades.D, multiplier = 0.68 },
+        { lower = 0.08, upper = 0.10, grade = CropValueMap.Grades.C, multiplier = 0.83 },
+        { lower = 0.10, upper = 0.13, grade = CropValueMap.Grades.B, multiplier = 0.93 },
+        { lower = 0.13, upper = 0.14, grade = CropValueMap.Grades.A, multiplier = 1.0 },
+        { lower = 0.14, upper = 0.16, grade = CropValueMap.Grades.B, multiplier = 0.93 },
+        { lower = 0.16, upper = 0.19, grade = CropValueMap.Grades.C, multiplier = 0.83 },
+        { lower = 0.19, upper = 1.00, grade = CropValueMap.Grades.D, multiplier = 0.68 }
+    },
+    ["MILLET"] = {
+        { lower = 0.00, upper = 0.08, grade = CropValueMap.Grades.D, multiplier = 0.67 },
+        { lower = 0.08, upper = 0.10, grade = CropValueMap.Grades.C, multiplier = 0.82 },
+        { lower = 0.10, upper = 0.13, grade = CropValueMap.Grades.B, multiplier = 0.93 },
+        { lower = 0.13, upper = 0.14, grade = CropValueMap.Grades.A, multiplier = 1.0 },
+        { lower = 0.14, upper = 0.16, grade = CropValueMap.Grades.B, multiplier = 0.93 },
+        { lower = 0.16, upper = 0.19, grade = CropValueMap.Grades.C, multiplier = 0.82 },
+        { lower = 0.19, upper = 1.00, grade = CropValueMap.Grades.D, multiplier = 0.67 }
     }
 }
 
