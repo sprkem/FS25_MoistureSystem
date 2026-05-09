@@ -7,7 +7,6 @@
         <en>Moisture System</en>
         <de>Feuchtigkeitssystem</de>
         <fr>Système D'Humidité</fr>
-        <tr>Nem Sistemi</tr>
     </title>
     <description>
         <en><![CDATA[Moisture System
@@ -33,8 +32,9 @@ Changelog:
 
 1.0.0.4 [WIP]:
 - Added assurance on moisture grid lookup
-- Added Ukrainian translation thanks to sava4903-coder
 - Add support for beans, buckwheat and millet crops, thanks to merittu
+- Added Ukrainian translation thanks to sava4903-coder
+- Add Turkish translation thanks to Cyber-Syntax
 
 
 1.0.0.3:
