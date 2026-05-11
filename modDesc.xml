@@ -31,6 +31,7 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 Changelog:
 
 1.0.0.4 [WIP]:
+- Introduces drying in in silos. Crop price is now determined by quality, not moisture level as it was previously. Quality is initially determined by moisture level. Dry crops to avoid quality degradation over time. Selling crop with excess moisture will cause you to incur drying charges.
 - Added assurance on moisture grid lookup
 - Add support for beans, buckwheat and millet crops, thanks to merittu
 - Added Ukrainian translation thanks to sava4903-coder
