@@ -135,14 +135,18 @@ Journal des modifications :
         <sourceFile filename="src/extensions/MowerExtension.lua"/>
         <sourceFile filename="src/extensions/TedderExtension.lua"/>
         <sourceFile filename="src/extensions/WindrowerExtension.lua"/>
+        <sourceFile filename="src/extensions/I18NExtension.lua"/>
         <sourceFile filename="src/extensions/SellingStationExtension.lua"/>
         <sourceFile filename="src/extensions/LoadingStationExtension.lua"/>
         <sourceFile filename="src/gui/CropGradeTableRenderer.lua"/>
+        <sourceFile filename="src/gui/QualityPriceTableRenderer.lua"/>
         <sourceFile filename="src/gui/MoistureGuiGrades.lua"/>
+        <sourceFile filename="src/gui/MoistureGuiPrices.lua"/>
         <sourceFile filename="src/gui/MoistureGuiCalendar.lua"/>
         <sourceFile filename="src/gui/MoistureGui.lua"/>
         <sourceFile filename="src/GroundPropertyTracker.lua"/>
         <sourceFile filename="src/BaleRottingSystem.lua"/>
+        <sourceFile filename="src/DryingSystem.lua"/>
         <sourceFile filename="src/events/InitialClientStateEvent.lua"/>
         <sourceFile filename="src/events/MoistureSettingsEvent.lua"/>
         <sourceFile filename="src/events/MoistureUpdateEvent.lua"/>
@@ -152,6 +156,7 @@ Journal des modifications :
         <sourceFile filename="src/events/ObjectMoistureResponseEvent.lua"/>
         <sourceFile filename="src/events/BaleRottingRequestEvent.lua"/>
         <sourceFile filename="src/events/BaleRottingResponseEvent.lua"/>
+        <sourceFile filename="src/events/DryingToggleEvent.lua"/>
         <sourceFile filename="src/MoistureSettings.lua"/>
         <sourceFile filename="src/handTools/MoistureMeterTool.lua"/>
         <sourceFile filename="src/main.lua"/>

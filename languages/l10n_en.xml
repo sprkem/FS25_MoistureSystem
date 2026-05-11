@@ -23,6 +23,14 @@
 		<text name="setting_moisture_baleRotRate_tooltip" text="Multiplier for bale volume loss rate. Higher values mean faster rotting."/>
 		<text name="setting_moisture_baleExposureDecayRate" text="Bale Drying Rate"/>
 		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="How fast bales dry out after rain stops. Lower = slower drying."/>
+		<text name="setting_moisture_qualityDecayMultiplier" text="Quality Decay Rate"/>
+		<text name="setting_moisture_qualityDecayMultiplier_tooltip" text="How fast crop quality degrades when stored above ideal moisture. Higher = faster decay."/>
+		<text name="setting_moisture_dryingCostPerHour" text="Silo Drying Cost/Hour"/>
+		<text name="setting_moisture_dryingCostPerHour_tooltip" text="Cost per hour while a silo dryer is running."/>
+		<text name="setting_moisture_dryingSpeed" text="Silo Drying Speed"/>
+		<text name="setting_moisture_dryingSpeed_tooltip" text="Moisture percentage removed per hour by silo drying."/>
+		<text name="setting_moisture_sellDryingChargeRate" text="Sell Drying Charge"/>
+		<text name="setting_moisture_sellDryingChargeRate_tooltip" text="Drying charge multiplier applied when selling wet crops. Higher = more expensive."/>
 		<text name="setting_moisture_showFieldMoisture" text="Show Field Moisture"/>
 		<text name="setting_moisture_showFieldMoisture_tooltip" text="Display the current moisture level at your position in the field info HUD."/>
 		<text name="setting_moisture_moistureMeterReporting" text="Moisture Meter Reporting"/>
@@ -37,12 +45,24 @@
 		<!-- Multiplayer Permission -->
 		<text name="permission_moisture_moistureSettings" text="Change Moisture Settings"/>
 
+		<!-- Finance -->
+		<text name="ms_ui_dryingCharge" text="Drying Charges"/>
+		<text name="finance_dryingCharge" text="Drying Charges"/>
+
+		<!-- Drying System -->
+		<text name="ms_action_startDrying" text="Start Drying"/>
+		<text name="ms_action_stopDrying" text="Stop Drying"/>
+		<text name="ms_drying_started" text="Silo drying started"/>
+		<text name="ms_drying_stopped" text="Silo drying stopped"/>
+		<text name="ms_drying_complete" text="Drying complete - all crops at ideal moisture"/>
+
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Open Moisture Menu"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Field Moisture"/>
 		<text name="moistureSystem_moisture" text="Moisture"/>
+		<text name="moistureSystem_quality" text="Quality"/>
 		<text name="moistureSystem_range" text="Expected Range"/>
 		<text name="moistureSystem_rainExposure" text="Rain Exposure"/>
 		<text name="moistureSystem_baleStatus" text="Status"/>
@@ -55,6 +75,10 @@
 		<!-- GUI -->
 		<text name="moistureSystem_gui_cropGradeValues" text="Crop Grade Values"/>
 		<text name="moistureSystem_gui_description" text="The data below shows moisture grading for each supported crop. The moisture range for the grade is shown, and the price multiplier for that grade is shown in brackets."/>
+		<text name="moistureSystem_gui_moistureToQuality" text="Moisture to Quality"/>
+		<text name="moistureSystem_gui_moistureToQualityDesc" text="Shows the quality value assigned at harvest based on moisture level. Harvest within the ideal range (Grade A) for maximum quality. Quality degrades hourly when stored above ideal moisture."/>
+		<text name="moistureSystem_gui_qualityToPrice" text="Quality to Price"/>
+		<text name="moistureSystem_gui_qualityToPriceDesc" text="Shows the sell price multiplier based on crop quality. Quality ranges vary per crop - some are more resilient to quality loss than others."/>
 		<text name="moistureSystem_gui_cropName" text="Crop Name"/>
 		<text name="moistureSystem_gui_gradeA" text="Grade A"/>
 		<text name="moistureSystem_gui_gradeB" text="Grade B"/>

@@ -158,7 +158,6 @@ function MSCutterExtension.updateCombineMoisture(combineVehicle, newLiters, newM
         return
     end
 
-    -- Get current fill level (before adding new crop)
     local spec = combineVehicle.spec_combine
     if spec == nil then
         return
@@ -166,18 +165,16 @@ function MSCutterExtension.updateCombineMoisture(combineVehicle, newLiters, newM
 
     local totalFillLevel = combineVehicle:getFillUnitFillLevel(spec.fillUnitIndex)
     local currentLiters = totalFillLevel - newLiters
-    local currentMoisture = moistureSystem:getObjectMoisture(uniqueId, fillType)
+    local currentInfo = moistureSystem:getObjectInfo(uniqueId, fillType)
+    local newQuality = moistureSystem:deriveQuality(fillType, newMoisture)
 
-    if currentMoisture == nil or currentLiters <= 0.001 then
-        -- First harvest or empty tank - use source moisture directly
-        moistureSystem:setObjectMoisture(uniqueId, fillType, newMoisture)
+    if currentInfo == nil or currentLiters <= 0.001 then
+        moistureSystem:setObjectInfo(uniqueId, fillType, { moisture = newMoisture, quality = newQuality })
     else
-        -- Volume-weighted average
         local totalLiters = totalFillLevel
-        local moistureLiters = currentLiters * currentMoisture + newLiters * newMoisture
-        local averageMoisture = moistureLiters / totalLiters
-
-        moistureSystem:setObjectMoisture(uniqueId, fillType, averageMoisture)
+        local avgMoisture = (currentLiters * currentInfo.moisture + newLiters * newMoisture) / totalLiters
+        local avgQuality = (currentLiters * (currentInfo.quality or 100) + newLiters * newQuality) / totalLiters
+        moistureSystem:setObjectInfo(uniqueId, fillType, { moisture = avgMoisture, quality = avgQuality })
     end
 end
 
@@ -218,9 +215,9 @@ function MSCutterExtension.resetCombineMoisture(combineVehicle, fillType)
     end
 
     if fillType == nil then
-        moistureSystem.objectMoisture[uniqueId] = nil
+        moistureSystem.objectInfo[uniqueId] = nil
     else
-        moistureSystem:setObjectMoisture(uniqueId, fillType, nil)
+        moistureSystem:setObjectInfo(uniqueId, fillType, nil)
     end
 end
 
