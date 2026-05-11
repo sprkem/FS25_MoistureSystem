@@ -152,10 +152,18 @@ function DryingActivatable.new(dryingSystem, placeable)
     return self
 end
 
+DryingActivatable.ACTIVATION_DISTANCE = 15
+
 function DryingActivatable:getIsActivatable()
-    if g_localPlayer == nil then return false end
-    if g_localPlayer:getIsInVehicle() then return false end
     if self.placeable == nil or self.placeable.rootNode == nil then return false end
+    if g_localPlayer == nil then return false end
+    if g_localPlayer:getCurrentVehicle() ~= nil then return false end
+
+    local px, _, pz = getWorldTranslation(g_localPlayer.rootNode)
+    local tx, _, tz = getWorldTranslation(self.placeable.rootNode)
+    if MathUtil.vector2Length(px - tx, pz - tz) > DryingActivatable.ACTIVATION_DISTANCE then
+        return false
+    end
 
     if self.dryingSystem:isDrying(self.placeable.uniqueId) then
         self.activateText = g_i18n:getText("ms_action_stopDrying")
