@@ -53,7 +53,6 @@ function SellingStationExtension:getQualityMultiplierForSale(fillTypeIndex, fill
     end
 
     if info == nil then
-        print(string.format("[MS] SellingStation: no objectInfo for source %s fillType %d", tostring(fillInfo.sourceUniqueId), fillTypeIndex))
         return 1, 0
     end
 
@@ -62,13 +61,10 @@ function SellingStationExtension:getQualityMultiplierForSale(fillTypeIndex, fill
 
     local dryingCharge = 0
     local _, idealMax = CropValueMap.getIdealRange(fillTypeIndex)
-    print(string.format("[MS] Sale: moisture=%.4f quality=%.1f idealMax=%s priceScale=%.2f liters=%.1f",
-        info.moisture or -1, info.quality or -1, tostring(idealMax), priceScale, deltaFillLevel))
     if idealMax and info.moisture > idealMax then
         local overshoot = info.moisture - idealMax
-        local chargeRate = ms.settings.sellDryingChargeRate or 0.5
+        local chargeRate = ms.settings.sellDryingChargeRate or 1.0
         dryingCharge = chargeRate * overshoot * deltaFillLevel
-        print(string.format("[MS] Drying charge: overshoot=%.4f rate=%.2f charge=%.2f", overshoot, chargeRate, dryingCharge))
     end
 
     return priceScale, dryingCharge

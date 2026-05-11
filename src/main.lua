@@ -26,7 +26,7 @@ function MoistureSystem:loadMap()
         qualityDecayMultiplier = 1.0,
         dryingCostPerHour = 50,
         dryingSpeed = 0.01,
-        sellDryingChargeRate = 5.0,
+        sellDryingChargeRate = 1.0,
         showFieldMoisture = false,
         moistureMeterReporting = MoistureSettings.METER_REPORTING_BLINKING
     }

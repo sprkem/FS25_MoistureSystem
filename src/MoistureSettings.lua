@@ -144,8 +144,8 @@ MoistureSettings.SETTINGS.sellDryingChargeRate = {
     ['default'] = 2,
     ['serverOnly'] = true,
     ['permission'] = 'moistureSettings',
-    ['values'] = { 2.5, 5.0, 10.0, 20.0 },
-    ['strings'] = { "2.5x", "5x", "10x", "20x" }
+    ['values'] = { 0.5, 1.0, 2.0, 4.0 },
+    ['strings'] = { "0.5x", "1x", "2x", "4x" }
 }
 
 function MoistureSettings.getStateIndex(id, value)

@@ -76,6 +76,18 @@ function DryingSystem:onHourChanged()
             local allDry = true
             local farmId = placeable:getOwnerFarmId()
 
+            local totalLiters = 0
+            for _, storage in ipairs(placeable.spec_silo.storages) do
+                for _, fillLevel in pairs(storage.fillLevels) do
+                    if fillLevel > 0 then
+                        totalLiters = totalLiters + fillLevel
+                    end
+                end
+            end
+
+            local volumeFactor = math.max(1, totalLiters / 10000)
+            local effectiveDryingRate = dryingRate / volumeFactor
+
             for _, storage in ipairs(placeable.spec_silo.storages) do
                 for fillTypeIndex, fillLevel in pairs(storage.fillLevels) do
                     if fillLevel > 0 then
@@ -83,7 +95,7 @@ function DryingSystem:onHourChanged()
                         if idealMax then
                             local info = ms:getObjectInfo(placeable.uniqueId, fillTypeIndex)
                             if info and info.moisture > idealMax then
-                                info.moisture = math.max(idealMax, info.moisture - dryingRate)
+                                info.moisture = math.max(idealMax, info.moisture - effectiveDryingRate)
                                 allDry = false
                             end
                         end
