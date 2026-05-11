@@ -59,12 +59,14 @@ function DryingSystem:isDrying(placeableId)
     return self.activeDryers[placeableId] ~= nil
 end
 
+DryingSystem.SILO_COST_RATIO = 0.7
+
 function DryingSystem:onHourChanged()
     if not g_currentMission:getIsServer() then return end
 
     local ms = g_currentMission.MoistureSystem
     local dryingRate = ms.settings.dryingSpeed or DryingSystem.DEFAULT_DRYING_RATE
-    local costPerHour = ms.settings.dryingCostPerHour or DryingSystem.DEFAULT_COST_PER_HOUR
+    local sellChargeRate = ms.settings.sellDryingChargeRate or 1.0
 
     local completedDryers = {}
 
@@ -108,8 +110,12 @@ function DryingSystem:onHourChanged()
                 g_currentMission:addIngameNotification(FSBaseMission.INGAME_NOTIFICATION_OK,
                     g_i18n:getText("ms_drying_complete"))
             else
-                g_currentMission:addMoneyChange(-costPerHour, farmId, MoneyType.DRYING_CHARGE, true)
-                g_farmManager:getFarmById(farmId):changeBalance(-costPerHour, MoneyType.DRYING_CHARGE)
+                -- Cost this hour = fraction of what selling station would charge for the moisture removed
+                -- sellCharge equivalent for this tick = sellChargeRate × effectiveDryingRate × totalLiters
+                -- We charge half of that
+                local hourlyCost = DryingSystem.SILO_COST_RATIO * sellChargeRate * effectiveDryingRate * totalLiters
+                g_currentMission:addMoneyChange(-hourlyCost, farmId, MoneyType.DRYING_CHARGE, true)
+                g_farmManager:getFarmById(farmId):changeBalance(-hourlyCost, MoneyType.DRYING_CHARGE)
             end
         end
     end

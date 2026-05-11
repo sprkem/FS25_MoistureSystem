@@ -35,6 +35,13 @@ function MSPlaceableInfoTriggerExtension:updateInfo(info)
                     text = string.format("%.1f%%", info_data.moisture * 100),
                     accentuate = false
                 })
+                if info_data.quality then
+                    table.insert(info, {
+                        title = fillType.title .. " " .. g_i18n:getText("moistureSystem_quality"),
+                        text = string.format("%d%%", math.floor(info_data.quality)),
+                        accentuate = false
+                    })
+                end
             end
         end
     end

@@ -24,7 +24,6 @@ function MoistureSystem:loadMap()
         baleRotRate = 1.0,
         baleExposureDecayRate = 1.0,
         qualityDecayMultiplier = 1.0,
-        dryingCostPerHour = 50,
         dryingSpeed = 0.01,
         sellDryingChargeRate = 1.0,
         showFieldMoisture = false,
@@ -739,10 +738,6 @@ function MoistureSystem:loadFromXMLFile()
             self.settings.qualityDecayMultiplier = qualityDecayMultiplier
         end
 
-        local dryingCostPerHour = getXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#dryingCostPerHour")
-        if dryingCostPerHour then
-            self.settings.dryingCostPerHour = dryingCostPerHour
-        end
 
         local dryingSpeed = getXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#dryingSpeed")
         if dryingSpeed then
@@ -873,7 +868,6 @@ function MoistureSystem:saveToXmlFile()
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#baleRotRate", ms.settings.baleRotRate)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#baleExposureDecayRate", ms.settings.baleExposureDecayRate)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#qualityDecayMultiplier", ms.settings.qualityDecayMultiplier)
-    setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#dryingCostPerHour", ms.settings.dryingCostPerHour)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#dryingSpeed", ms.settings.dryingSpeed)
     setXMLFloat(xmlFile, MoistureSystem.SaveKey .. ".settings#sellDryingChargeRate", ms.settings.sellDryingChargeRate)
     setXMLBool(xmlFile, MoistureSystem.SaveKey .. ".settings#showFieldMoisture", ms.settings.showFieldMoisture)
@@ -991,7 +985,6 @@ function MoistureSystem:writeInitialClientState(streamId, connection)
     streamWriteFloat32(streamId, self.settings.baleRotRate)
     streamWriteFloat32(streamId, self.settings.baleExposureDecayRate)
     streamWriteFloat32(streamId, self.settings.qualityDecayMultiplier)
-    streamWriteFloat32(streamId, self.settings.dryingCostPerHour)
     streamWriteFloat32(streamId, self.settings.dryingSpeed)
     streamWriteFloat32(streamId, self.settings.sellDryingChargeRate)
     streamWriteBool(streamId, self.settings.showFieldMoisture)
@@ -1016,7 +1009,6 @@ function MoistureSystem:readInitialClientState(streamId, connection)
     self.settings.baleRotRate = streamReadFloat32(streamId)
     self.settings.baleExposureDecayRate = streamReadFloat32(streamId)
     self.settings.qualityDecayMultiplier = streamReadFloat32(streamId)
-    self.settings.dryingCostPerHour = streamReadFloat32(streamId)
     self.settings.dryingSpeed = streamReadFloat32(streamId)
     self.settings.sellDryingChargeRate = streamReadFloat32(streamId)
     self.settings.showFieldMoisture = streamReadBool(streamId)

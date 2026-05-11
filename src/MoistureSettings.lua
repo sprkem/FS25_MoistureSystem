@@ -14,7 +14,6 @@ MoistureSettings.menuItems = {
     'baleRotRate',
     'baleExposureDecayRate',
     'qualityDecayMultiplier',
-    'dryingCostPerHour',
     'dryingSpeed',
     'sellDryingChargeRate',
     'showFieldMoisture',
@@ -122,14 +121,6 @@ MoistureSettings.SETTINGS.qualityDecayMultiplier = {
     ['permission'] = 'moistureSettings',
     ['values'] = { 0.5, 1.0, 1.5, 2.0 },
     ['strings'] = { "0.5x", "1x", "1.5x", "2x" }
-}
-
-MoistureSettings.SETTINGS.dryingCostPerHour = {
-    ['default'] = 2,
-    ['serverOnly'] = true,
-    ['permission'] = 'moistureSettings',
-    ['values'] = { 25, 50, 100, 200 },
-    ['strings'] = { "$25", "$50", "$100", "$200" }
 }
 
 MoistureSettings.SETTINGS.dryingSpeed = {

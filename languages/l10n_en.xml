@@ -25,9 +25,7 @@
 		<text name="setting_moisture_baleExposureDecayRate_tooltip" text="How fast bales dry out after rain stops. Lower = slower drying."/>
 		<text name="setting_moisture_qualityDecayMultiplier" text="Quality Decay Rate"/>
 		<text name="setting_moisture_qualityDecayMultiplier_tooltip" text="How fast crop quality degrades when stored above ideal moisture. Higher = faster decay."/>
-		<text name="setting_moisture_dryingCostPerHour" text="Silo Drying Cost/Hour"/>
-		<text name="setting_moisture_dryingCostPerHour_tooltip" text="Cost per hour while a silo dryer is running."/>
-		<text name="setting_moisture_dryingSpeed" text="Silo Drying Speed"/>
+<text name="setting_moisture_dryingSpeed" text="Silo Drying Speed"/>
 		<text name="setting_moisture_dryingSpeed_tooltip" text="Moisture percentage removed per hour by silo drying."/>
 		<text name="setting_moisture_sellDryingChargeRate" text="Sell Drying Charge"/>
 		<text name="setting_moisture_sellDryingChargeRate_tooltip" text="Drying charge multiplier applied when selling wet crops. Higher = more expensive."/>
