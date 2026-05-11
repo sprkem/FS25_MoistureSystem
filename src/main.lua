@@ -26,7 +26,7 @@ function MoistureSystem:loadMap()
         qualityDecayMultiplier = 1.0,
         dryingCostPerHour = 50,
         dryingSpeed = 0.01,
-        sellDryingChargeRate = 0.5,
+        sellDryingChargeRate = 5.0,
         showFieldMoisture = false,
         moistureMeterReporting = MoistureSettings.METER_REPORTING_BLINKING
     }
@@ -111,6 +111,8 @@ function MoistureSystem:update(dt)
         g_currentMission.baleRottingSystem:update(dt)
     end
 
+
+    SellingStationExtension.update()
 
     -- Sync to clients periodically (batched)
     self.timeSinceLastSync = self.timeSinceLastSync + dt

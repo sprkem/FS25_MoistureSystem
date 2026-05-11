@@ -1,4 +1,7 @@
 SellingStationExtension = {}
+SellingStationExtension.dryingChargeAccumulator = 0
+SellingStationExtension.dryingChargeCountdown = 0
+SellingStationExtension.dryingChargeFarmId = nil
 
 function SellingStationExtension:addFillLevelFromTool(superFunc, farmId, deltaFillLevel, fillTypeIndex, fillInfo, toolType, extraAttributes)
     if g_currentMission:getIsServer() and deltaFillLevel > 0 then
@@ -12,12 +15,29 @@ function SellingStationExtension:addFillLevelFromTool(superFunc, farmId, deltaFi
         end
 
         if dryingCharge and dryingCharge > 0 then
-            g_currentMission:addMoneyChange(-dryingCharge, farmId, MoneyType.DRYING_CHARGE, true)
+            SellingStationExtension.dryingChargeAccumulator = SellingStationExtension.dryingChargeAccumulator + dryingCharge
+            SellingStationExtension.dryingChargeCountdown = 30
+            SellingStationExtension.dryingChargeFarmId = farmId
             g_farmManager:getFarmById(farmId):changeBalance(-dryingCharge, MoneyType.DRYING_CHARGE)
         end
     end
 
     return superFunc(self, farmId, deltaFillLevel, fillTypeIndex, fillInfo, toolType, extraAttributes)
+end
+
+function SellingStationExtension.update()
+    if SellingStationExtension.dryingChargeCountdown > 0 then
+        SellingStationExtension.dryingChargeCountdown = SellingStationExtension.dryingChargeCountdown - 1
+        if SellingStationExtension.dryingChargeCountdown == 0 then
+            local total = SellingStationExtension.dryingChargeAccumulator
+            local farmId = SellingStationExtension.dryingChargeFarmId
+            if total > 0 and farmId then
+                g_currentMission:addMoneyChange(-total, farmId, MoneyType.DRYING_CHARGE, true)
+            end
+            SellingStationExtension.dryingChargeAccumulator = 0
+            SellingStationExtension.dryingChargeFarmId = nil
+        end
+    end
 end
 
 function SellingStationExtension:getQualityMultiplierForSale(fillTypeIndex, fillInfo, deltaFillLevel)
@@ -33,6 +53,7 @@ function SellingStationExtension:getQualityMultiplierForSale(fillTypeIndex, fill
     end
 
     if info == nil then
+        print(string.format("[MS] SellingStation: no objectInfo for source %s fillType %d", tostring(fillInfo.sourceUniqueId), fillTypeIndex))
         return 1, 0
     end
 
@@ -41,10 +62,13 @@ function SellingStationExtension:getQualityMultiplierForSale(fillTypeIndex, fill
 
     local dryingCharge = 0
     local _, idealMax = CropValueMap.getIdealRange(fillTypeIndex)
+    print(string.format("[MS] Sale: moisture=%.4f quality=%.1f idealMax=%s priceScale=%.2f liters=%.1f",
+        info.moisture or -1, info.quality or -1, tostring(idealMax), priceScale, deltaFillLevel))
     if idealMax and info.moisture > idealMax then
         local overshoot = info.moisture - idealMax
         local chargeRate = ms.settings.sellDryingChargeRate or 0.5
         dryingCharge = chargeRate * overshoot * deltaFillLevel
+        print(string.format("[MS] Drying charge: overshoot=%.4f rate=%.2f charge=%.2f", overshoot, chargeRate, dryingCharge))
     end
 
     return priceScale, dryingCharge
