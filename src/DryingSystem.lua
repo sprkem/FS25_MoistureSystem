@@ -75,7 +75,6 @@ function DryingSystem:onHourChanged()
         if placeable == nil or placeable.spec_silo == nil then
             table.insert(completedDryers, placeableId)
         else
-            local allDry = true
             local farmId = placeable:getOwnerFarmId()
 
             local totalLiters = 0
@@ -87,35 +86,37 @@ function DryingSystem:onHourChanged()
                 end
             end
 
-            local volumeFactor = math.max(1, totalLiters / 10000)
-            local effectiveDryingRate = dryingRate / volumeFactor
-
-            for _, storage in ipairs(placeable.spec_silo.storages) do
-                for fillTypeIndex, fillLevel in pairs(storage.fillLevels) do
-                    if fillLevel > 0 then
-                        local _, idealMax = CropValueMap.getIdealRange(fillTypeIndex)
-                        if idealMax then
-                            local info = ms:getObjectInfo(placeable.uniqueId, fillTypeIndex)
-                            if info and info.moisture > idealMax then
-                                info.moisture = math.max(idealMax, info.moisture - effectiveDryingRate)
-                                allDry = false
-                            end
-                        end
-                    end
-                end
-            end
-
-            if allDry then
+            if not self:siloNeedsDrying(placeable, ms) then
                 table.insert(completedDryers, placeableId)
                 g_currentMission:addIngameNotification(FSBaseMission.INGAME_NOTIFICATION_OK,
                     g_i18n:getText("ms_drying_complete"))
             else
-                -- Cost this hour = fraction of what selling station would charge for the moisture removed
-                -- sellCharge equivalent for this tick = sellChargeRate × effectiveDryingRate × totalLiters
-                -- We charge half of that
+                local volumeFactor = math.max(1, totalLiters / 10000)
+                local effectiveDryingRate = dryingRate / volumeFactor
+
+                for _, storage in ipairs(placeable.spec_silo.storages) do
+                    for fillTypeIndex, fillLevel in pairs(storage.fillLevels) do
+                        if fillLevel > 0 then
+                            local _, idealMax = CropValueMap.getIdealRange(fillTypeIndex)
+                            if idealMax then
+                                local info = ms:getObjectInfo(placeable.uniqueId, fillTypeIndex)
+                                if info and info.moisture > idealMax then
+                                    info.moisture = math.max(idealMax, info.moisture - effectiveDryingRate)
+                                end
+                            end
+                        end
+                    end
+                end
+
                 local hourlyCost = DryingSystem.SILO_COST_RATIO * sellChargeRate * effectiveDryingRate * totalLiters
                 g_currentMission:addMoneyChange(-hourlyCost, farmId, MoneyType.DRYING_CHARGE, true)
                 g_farmManager:getFarmById(farmId):changeBalance(-hourlyCost, MoneyType.DRYING_CHARGE)
+
+                if not self:siloNeedsDrying(placeable, ms) then
+                    table.insert(completedDryers, placeableId)
+                    g_currentMission:addIngameNotification(FSBaseMission.INGAME_NOTIFICATION_OK,
+                        g_i18n:getText("ms_drying_complete"))
+                end
             end
         end
     end
@@ -123,6 +124,23 @@ function DryingSystem:onHourChanged()
     for _, placeableId in ipairs(completedDryers) do
         self.activeDryers[placeableId] = nil
     end
+end
+
+function DryingSystem:siloNeedsDrying(placeable, ms)
+    for _, storage in ipairs(placeable.spec_silo.storages) do
+        for fillTypeIndex, fillLevel in pairs(storage.fillLevels) do
+            if fillLevel > 0 then
+                local _, idealMax = CropValueMap.getIdealRange(fillTypeIndex)
+                if idealMax then
+                    local info = ms:getObjectInfo(placeable.uniqueId, fillTypeIndex)
+                    if info and info.moisture > idealMax then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
 end
 
 function DryingSystem:getPlaceableByUniqueId(uniqueId)
