@@ -56,6 +56,7 @@
 
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Open Moisture Menu"/>
+		<text name="input_MOISTURE_START_DRYING" text="Toggle Silo Drying"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Field Moisture"/>

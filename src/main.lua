@@ -110,7 +110,6 @@ function MoistureSystem:update(dt)
         g_currentMission.baleRottingSystem:update(dt)
     end
 
-
     SellingStationExtension.update()
 
     -- Sync to clients periodically (batched)
@@ -631,6 +630,7 @@ function MoistureSystem:onStartMission()
         g_currentMission.dryingSystem:registerActivatables()
     end
 
+
     if g_currentMission:getIsServer() then
         -- Initialize mod on new game
         if not ms.didLoadFromXML then
@@ -1033,6 +1033,7 @@ local function addPlayerActionEvents(self, superFunc, ...)
         MoistureSystem.ShowMoistureGUI, false, true, false,
         true)
     g_inputBinding:setActionEventTextVisibility(id, false)
+
 end
 
 

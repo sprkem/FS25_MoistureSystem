@@ -2,7 +2,10 @@ DryingSystem = {}
 local DryingSystem_mt = Class(DryingSystem)
 
 DryingSystem.DEFAULT_DRYING_RATE = 0.01
-DryingSystem.DEFAULT_COST_PER_HOUR = 50
+DryingSystem.SILO_COST_RATIO = 0.7
+DryingSystem.ACTIVATION_DISTANCE = 7
+
+local PLAYER_CONTEXT = "PLAYER"
 
 function DryingSystem.new()
     local self = setmetatable({}, DryingSystem_mt)
@@ -33,13 +36,6 @@ function DryingSystem:removeActivatable(placeableId)
     self.activatables[placeableId] = nil
 end
 
-function DryingSystem:removeAllActivatables()
-    for _, activatable in pairs(self.activatables) do
-        g_currentMission.activatableObjectsSystem:removeActivatable(activatable)
-    end
-    self.activatables = {}
-end
-
 function DryingSystem:toggleDrying(placeable)
     if placeable == nil then return end
 
@@ -58,8 +54,6 @@ end
 function DryingSystem:isDrying(placeableId)
     return self.activeDryers[placeableId] ~= nil
 end
-
-DryingSystem.SILO_COST_RATIO = 0.7
 
 function DryingSystem:onHourChanged()
     if not g_currentMission:getIsServer() then return end
@@ -185,21 +179,33 @@ function DryingActivatable.new(dryingSystem, placeable)
     self.dryingSystem = dryingSystem
     self.placeable = placeable
     self.activateText = g_i18n:getText("ms_action_startDrying")
+    self.actionEventId = nil
     return self
 end
 
-DryingActivatable.ACTIVATION_DISTANCE = 15
-
 function DryingActivatable:getIsActivatable()
     if self.placeable == nil or self.placeable.rootNode == nil then return false end
-    if g_localPlayer == nil then return false end
+    if g_localPlayer == nil or g_localPlayer.rootNode == nil then return false end
     if g_localPlayer:getCurrentVehicle() ~= nil then return false end
 
     local px, _, pz = getWorldTranslation(g_localPlayer.rootNode)
     local tx, _, tz = getWorldTranslation(self.placeable.rootNode)
-    if MathUtil.vector2Length(px - tx, pz - tz) > DryingActivatable.ACTIVATION_DISTANCE then
+    if MathUtil.vector2Length(px - tx, pz - tz) > DryingSystem.ACTIVATION_DISTANCE then
         return false
     end
+
+    local ms = g_currentMission.MoistureSystem
+    local objectData = ms.objectInfo[self.placeable.uniqueId]
+    if not objectData then return false end
+
+    local hasMoisture = false
+    for _, info in pairs(objectData) do
+        if info.moisture then
+            hasMoisture = true
+            break
+        end
+    end
+    if not hasMoisture then return false end
 
     if self.dryingSystem:isDrying(self.placeable.uniqueId) then
         self.activateText = g_i18n:getText("ms_action_stopDrying")
@@ -210,7 +216,41 @@ function DryingActivatable:getIsActivatable()
     return true
 end
 
-function DryingActivatable:run()
+function DryingActivatable:getDistance(x, _, z)
+    if self.placeable == nil or self.placeable.rootNode == nil then return math.huge end
+    local tx, _, tz = getWorldTranslation(self.placeable.rootNode)
+    return MathUtil.vector2Length(x - tx, z - tz)
+end
+
+function DryingActivatable:registerCustomInput(inputContext)
+    if inputContext ~= PLAYER_CONTEXT then
+        return
+    end
+
+    local _, actionEventId = g_inputBinding:registerActionEvent(
+        InputAction.MOISTURE_START_DRYING,
+        self,
+        self.onKeybindPressed,
+        false,
+        true,
+        false,
+        true
+    )
+
+    if actionEventId ~= nil and actionEventId ~= "" then
+        self.actionEventId = actionEventId
+        g_inputBinding:setActionEventText(actionEventId, self.activateText)
+        g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
+        g_inputBinding:setActionEventTextVisibility(actionEventId, true)
+    end
+end
+
+function DryingActivatable:removeCustomInput()
+    g_inputBinding:removeActionEventsByTarget(self)
+    self.actionEventId = nil
+end
+
+function DryingActivatable:onKeybindPressed()
     if self.placeable == nil then return end
 
     if g_currentMission:getIsServer() then
@@ -218,10 +258,16 @@ function DryingActivatable:run()
     else
         g_client:getServerConnection():sendEvent(DryingToggleEvent.new(self.placeable.uniqueId))
     end
+
+    if self.actionEventId then
+        if self.dryingSystem:isDrying(self.placeable.uniqueId) then
+            g_inputBinding:setActionEventText(self.actionEventId, g_i18n:getText("ms_action_stopDrying"))
+        else
+            g_inputBinding:setActionEventText(self.actionEventId, g_i18n:getText("ms_action_startDrying"))
+        end
+    end
 end
 
-function DryingActivatable:getDistance(x, _, z)
-    if self.placeable == nil or self.placeable.rootNode == nil then return math.huge end
-    local tx, _, tz = getWorldTranslation(self.placeable.rootNode)
-    return MathUtil.vector2Length(x - tx, z - tz)
+function DryingActivatable:run()
+    self:onKeybindPressed()
 end

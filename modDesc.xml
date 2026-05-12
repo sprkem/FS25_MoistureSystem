@@ -176,11 +176,15 @@ Journal des modifications :
 
     <actions>
         <action name="MOISTURE_MENU" category="SYSTEM" axisType="HALF" ignoreComboMask="false" />
+        <action name="MOISTURE_START_DRYING" category="SYSTEM" axisType="HALF" ignoreComboMask="false" />
     </actions>
 
     <inputBinding>
         <actionBinding action="MOISTURE_MENU">
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_m" />
+        </actionBinding>
+        <actionBinding action="MOISTURE_START_DRYING">
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_n" index="1" />
         </actionBinding>
     </inputBinding>
     
