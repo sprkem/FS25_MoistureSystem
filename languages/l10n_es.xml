@@ -56,6 +56,7 @@
 
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Abrir Menú de Humedad"/>
+		<text name="input_MOISTURE_START_DRYING" text="Alternar secado en silo"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Humedad del Campo"/>

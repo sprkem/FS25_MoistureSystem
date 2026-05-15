@@ -33,13 +33,13 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Changelog:
 
-1.0.0.4 [WIP]:
+1.0.0.4:
 - Introduces drying in in silos. Crop price is now determined by quality, not moisture level as it was previously. Quality is initially determined by moisture level. Dry crops to avoid quality degradation over time. Selling crop with excess moisture will cause you to incur drying charges.
+- Added support for MacDon pack. Previously crop harvested with this equipment would not track moisture levels.
 - Added assurance on moisture grid lookup
 - Add support for beans, buckwheat and millet crops, thanks to merittu
 - Added Ukrainian translation thanks to sava4903-coder
 - Add Turkish translation thanks to Cyber-Syntax
-
 
 1.0.0.3:
 - Add safety check to prevent errors when using SIM Dashboard and using a harvester.
@@ -80,6 +80,17 @@ Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Änderungsprotokoll:
 
+1.0.0.4:
+- Einführung der Silo-Trocknung. Der Erntepreis wird nun durch die Qualität bestimmt, nicht mehr durch den Feuchtigkeitsgehalt. Die Qualität wird anfangs durch den Feuchtigkeitsgehalt bestimmt. Trocknen Sie Ihre Ernte, um Qualitätsverlust über Zeit zu vermeiden. Der Verkauf von Ernte mit überschüssiger Feuchtigkeit verursacht Trocknungsgebühren.
+- Unterstützung für das MacDon-Pack hinzugefügt. Zuvor wurde die Feuchtigkeit bei der Ernte mit diesem Equipment nicht erfasst.
+- Absicherung bei der Feuchtigkeits-Gitterabfrage hinzugefügt
+- Unterstützung für Bohnen, Buchweizen und Hirse hinzugefügt, dank merittu
+- Ukrainische Übersetzung hinzugefügt, dank sava4903-coder
+- Türkische Übersetzung hinzugefügt, dank Cyber-Syntax
+
+1.0.0.3:
+- Sicherheitsprüfung hinzugefügt, um Fehler bei Verwendung von SIM Dashboard mit einem Mähdrescher zu vermeiden.
+
 1.0.0.2:
 - Überarbeitung der Ereignisse im Multiplayer zur Reduzierung des Netzwerkverkehrs und daraus resultierender Probleme.
 - Behebung eines Problems mit verrottenden Ballen in Objektlagern im Multiplayer.
@@ -115,6 +126,17 @@ Les options de personnalisation étendues vous permettent de calibrer la dynamiq
 Github: https://github.com/sprkem/FS25_MoistureSystem
 
 Journal des modifications :
+
+1.0.0.4 :
+- Introduction du séchage en silo. Le prix de vente est désormais déterminé par la qualité, et non plus par le taux d'humidité. La qualité est initialement déterminée par le taux d'humidité. Séchez vos récoltes pour éviter la dégradation de qualité au fil du temps. Vendre des récoltes avec un excès d'humidité entraînera des frais de séchage.
+- Ajout du support pour le pack MacDon. Auparavant, les récoltes effectuées avec cet équipement ne suivaient pas les niveaux d'humidité.
+- Ajout d'une assurance sur la recherche de grille d'humidité
+- Ajout du support pour les haricots, le sarrasin et le millet, grâce à merittu
+- Ajout de la traduction ukrainienne grâce à sava4903-coder
+- Ajout de la traduction turque grâce à Cyber-Syntax
+
+1.0.0.3 :
+- Ajout d'une vérification de sécurité pour éviter les erreurs lors de l'utilisation de SIM Dashboard avec une moissonneuse.
 
 1.0.0.2 :
 - Refonte des événements en multijoueur pour réduire le trafic réseau et les problèmes associés.

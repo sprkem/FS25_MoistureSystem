@@ -57,6 +57,7 @@
 
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Открыть Меню Влажности"/>
+		<text name="input_MOISTURE_START_DRYING" text="Переключить сушку в силосе"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Влажность Поля"/>

@@ -482,7 +482,21 @@ function MoistureSystem:deriveQuality(fillType, moisture)
     if multiplier then
         return math.floor(multiplier * 100)
     end
+
+    local baseFillType = self:getBaseCropFillType(fillType)
+    if baseFillType and baseFillType ~= fillType then
+        _, multiplier = CropValueMap.getGrade(baseFillType, moisture)
+        if multiplier then
+            return math.floor(multiplier * 100)
+        end
+    end
+
     return 100
+end
+
+function MoistureSystem:getBaseCropFillType(fillType)
+    if self.swathFillTypes == nil then return nil end
+    return self.swathFillTypes[fillType]
 end
 
 function MoistureSystem:transferObjectInfo(sourceId, targetId, sourceLiters, targetCurrentLiters, fillType)
@@ -597,12 +611,23 @@ function MoistureSystem:shouldTrackFillType(fillType)
         return true
     end
 
-    -- Track straw
     if self:isStrawFillType(fillType) then
         return true
     end
 
-    return CropValueMap.Data ~= nil and CropValueMap.Data[fillType] ~= nil
+    if CropValueMap.Data ~= nil and CropValueMap.Data[fillType] ~= nil then
+        return true
+    end
+
+    if self:isSwathFillType(fillType) then
+        return true
+    end
+
+    return false
+end
+
+function MoistureSystem:isSwathFillType(fillType)
+    return self.swathFillTypes ~= nil and self.swathFillTypes[fillType] ~= nil
 end
 
 ---
@@ -614,10 +639,24 @@ function MoistureSystem:getDefaultMoisture()
     return self.currentMoisturePercent
 end
 
+function MoistureSystem:initializeSwathFillTypes()
+    self.swathFillTypes = {}
+    local converter = g_fruitTypeManager:getConverterDataByName("COMBINE_MOWER")
+    if converter == nil then return end
+
+    for fruitTypeIndex, conversion in pairs(converter) do
+        local fruitType = g_fruitTypeManager:getFruitTypeByIndex(fruitTypeIndex)
+        if fruitType and fruitType.fillType then
+            self.swathFillTypes[conversion.fillTypeIndex] = fruitType.fillType.index
+        end
+    end
+end
+
 function MoistureSystem:onStartMission()
     CropValueMap.initialize()
     CropValueMap.initializeQualityBands()
     local ms = g_currentMission.MoistureSystem
+    ms:initializeSwathFillTypes()
     ms:setHeights()
     ms.missionStarted = true
 

@@ -57,6 +57,7 @@
 
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Ouvrir le Menu d'Humidité"/>
+		<text name="input_MOISTURE_START_DRYING" text="Activer/Désactiver le séchage"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Humidité du Champ"/>

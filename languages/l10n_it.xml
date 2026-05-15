@@ -57,6 +57,7 @@
 
 		<!-- Input Bindings -->
 		<text name="input_MOISTURE_MENU" text="Apri Menu Umidità"/>
+		<text name="input_MOISTURE_START_DRYING" text="Attiva/Disattiva essiccazione"/>
 
 		<!-- HUD Display -->
 		<text name="moistureSystem_fieldInfo" text="Umidità del Campo"/>
